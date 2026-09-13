@@ -1,0 +1,351 @@
+/* ============================================================
+   Resume Editor Section & Form Styles
+   ============================================================ */
+
+.sectionCard {
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 16px 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sectionIcon {
+  color: var(--color-primary-600);
+  display: flex;
+  align-items: center;
+}
+
+.sectionTitle {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-gray-900);
+  letter-spacing: -0.01em;
+}
+
+.itemCountBadge {
+  font-size: 11px;
+  background: #f1f5f9;
+  color: var(--color-gray-500);
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.collapseBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+}
+
+.sectionBody {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 4px;
+}
+
+/* ── Grid Layouts ────────────────────────────────────────── */
+.formGrid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.formGrid3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .formGrid2,
+  .formGrid3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--color-gray-700);
+}
+
+.input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--color-text);
+  background: #ffffff;
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.input:focus {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.12);
+}
+
+.textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--color-text);
+  background: #ffffff;
+  outline: none;
+  font-family: inherit;
+  line-height: 1.5;
+  resize: vertical;
+  transition: all var(--transition-fast);
+}
+
+.textarea:focus {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.12);
+}
+
+.charCount {
+  font-size: 11px;
+  color: var(--color-gray-400);
+  text-align: right;
+  margin-top: 2px;
+}
+
+/* ── Dynamic Entries Cards ───────────────────────────────── */
+.entriesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.entryCard {
+  background: #fafbfc;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+}
+
+.entryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.entryTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-gray-800);
+}
+
+.entryActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.iconBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  transition: all var(--transition-fast);
+}
+
+.iconBtn:hover {
+  color: var(--color-gray-800);
+  background: #e2e8f0;
+}
+
+.deleteBtn:hover {
+  color: #dc2626;
+  background: #fee2e2;
+}
+
+/* ── Bullet Points ───────────────────────────────────────── */
+.bulletsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bulletRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bulletInput {
+  flex: 1;
+  padding: 6px 10px;
+  font-size: 12.5px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  outline: none;
+}
+
+.bulletInput:focus {
+  border-color: var(--color-primary-500);
+}
+
+.addBulletBtn {
+  font-size: 11.5px;
+  color: var(--color-primary-600);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  align-self: flex-start;
+  font-weight: 600;
+}
+
+.addBulletBtn:hover {
+  text-decoration: underline;
+}
+
+/* ── Skills & Interests Tag Input ────────────────────────── */
+.tagsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: #ffffff;
+  min-height: 42px;
+}
+
+.tagsContainer:focus-within {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.12);
+}
+
+.tagChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-gray-800);
+}
+
+.tagRemoveBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+}
+
+.tagRemoveBtn:hover {
+  color: #dc2626;
+}
+
+.tagInput {
+  flex: 1;
+  min-width: 120px;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 12.5px;
+  padding: 4px;
+}
+
+.addEntryBtn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary-600);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.addEntryBtn:hover {
+  background: #eff6ff;
+  border-color: var(--color-primary-400);
+}
+
+/* ── Section Reordering List ─────────────────────────────── */
+.reorderList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reorderItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-gray-700);
+}
+
+.reorderButtons {
+  display: flex;
+  gap: 4px;
+}

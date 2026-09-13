@@ -49,7 +49,11 @@ export interface ActivityLog {
 
 export interface DashboardStats {
   pdfFilesCount: number;
+  resumesCount: number;
   activitiesCount: number;
   availableToolsCount: number;
   comingSoonToolsCount: number;
 }
+
+export * from '@/lib/resume/types';
+

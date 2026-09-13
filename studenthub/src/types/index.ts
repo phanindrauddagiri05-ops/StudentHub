@@ -13,6 +13,7 @@ export interface Tool {
   longDescription?: string;
   icon: string;
   category: ToolCategory;
+  categories?: ToolCategory[];
   status: ToolStatus;
   path: string;
   color?: string;

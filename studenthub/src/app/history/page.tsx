@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useTransition } from 'react';
+import Link from 'next/link';
 import {
   FileText,
   Search,
@@ -142,6 +143,37 @@ export default function HistoryPage() {
 
   return (
     <div className={styles.container}>
+      {/* ── Tabs for Document History vs Resume History ────────── */}
+      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
+        <Link
+          href="/history"
+          style={{
+            padding: '0.5rem 1rem',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            borderRadius: '8px',
+            backgroundColor: '#eff6ff',
+            color: '#2563eb',
+            textDecoration: 'none',
+          }}
+        >
+          PDF Documents
+        </Link>
+        <Link
+          href="/history/resumes"
+          style={{
+            padding: '0.5rem 1rem',
+            fontSize: '0.9375rem',
+            fontWeight: 600,
+            borderRadius: '8px',
+            color: '#64748b',
+            textDecoration: 'none',
+          }}
+        >
+          Resumes
+        </Link>
+      </div>
+
       {/* ── Header ───────────────────────────────────────────── */}
       <div className={styles.header}>
         <div>

@@ -2,28 +2,33 @@
 
 import React, { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   FileText,
   Activity,
-  CheckCircle2,
-  Clock,
-  Search,
+  Sparkles,
+  Plus,
+  Bookmark,
+  FolderTree,
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
 import { getDashboardStats, getUserActivities } from '@/lib/storage/file-service';
 import { formatRelativeTime } from '@/lib/utils/date';
 import type { DashboardStats, ActivityLog } from '@/types/database';
+import { CreateResumeModal } from '@/components/tools/resume/CreateResumeModal';
 import styles from './dashboard.module.css';
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { user, profile } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [createResumeOpen, setCreateResumeOpen] = useState(false);
   const [, startTransition] = useTransition();
 
-  // Determine time-of-day greeting
+  // Time-of-day greeting
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning';
@@ -31,9 +36,9 @@ export default function DashboardPage() {
     return 'Good evening';
   };
 
-  const firstName =
-    profile?.full_name?.split(' ')[0] ||
-    user?.user_metadata?.full_name?.split(' ')[0] ||
+  const realName =
+    profile?.full_name ||
+    user?.user_metadata?.full_name ||
     user?.email?.split('@')[0] ||
     'Student';
 
@@ -45,7 +50,7 @@ export default function DashboardPage() {
       try {
         const [statsData, activitiesData] = await Promise.all([
           getDashboardStats(user!.id),
-          getUserActivities({ userId: user!.id, limit: 5 }),
+          getUserActivities({ userId: user!.id, limit: 6 }),
         ]);
 
         if (mounted) {
@@ -70,19 +75,28 @@ export default function DashboardPage() {
 
   const QUICK_TOOLS = [
     {
+      id: 'resume-generator',
+      name: 'Resume Generator',
+      desc: 'Build ATS-friendly, professional resumes with live A4 preview and instant vector PDF export.',
+      emoji: '💼',
+      status: 'available',
+      href: '/tools/resume',
+      actionText: 'Build Resume',
+    },
+    {
       id: 'pdf-tools',
       name: 'PDF Tools',
-      desc: 'Merge, split, reorder, compress, and convert PDF documents in your browser.',
+      desc: 'Merge, split, reorder, compress, and convert PDF documents privately in your browser.',
       emoji: '📄',
       status: 'available',
       href: '/tools/pdf',
       actionText: 'Open Tool',
     },
     {
-      id: 'resume-generator',
-      name: 'Resume Generator',
-      desc: 'Build ATS-friendly professional resumes tailored to job descriptions.',
-      emoji: '💼',
+      id: 'percentage-calculator',
+      name: 'Percentage Calculator',
+      desc: 'Calculate college semester grades, CGPA to percentage, and marks required for target cutoffs.',
+      emoji: '📊',
       status: 'coming-soon',
       href: '#',
       actionText: 'Coming Soon',
@@ -90,8 +104,17 @@ export default function DashboardPage() {
     {
       id: 'notes-organizer',
       name: 'Smart Notes',
-      desc: 'Organize lecture notes, extract key points, and generate flashcards.',
+      desc: 'Organize lecture notes, extract key definitions, and generate study flashcards.',
       emoji: '📝',
+      status: 'coming-soon',
+      href: '#',
+      actionText: 'Coming Soon',
+    },
+    {
+      id: 'pdf-summary',
+      name: 'PDF Summary',
+      desc: 'Extract key takeaways and generate executive chapter summaries from textbooks.',
+      emoji: '📑',
       status: 'coming-soon',
       href: '#',
       actionText: 'Coming Soon',
@@ -99,8 +122,44 @@ export default function DashboardPage() {
     {
       id: 'mind-map',
       name: 'Mind Map Generator',
-      desc: 'Turn complex concepts and syllabi into visual diagrams.',
+      desc: 'Turn complex concepts, historical timelines, and syllabi into interactive visual diagrams.',
       emoji: '🧠',
+      status: 'coming-soon',
+      href: '#',
+      actionText: 'Coming Soon',
+    },
+    {
+      id: 'question-preparation',
+      name: 'Question Preparation',
+      desc: 'Generate exam practice sets, multiple choice tests, and flashcards from study materials.',
+      emoji: '❓',
+      status: 'coming-soon',
+      href: '#',
+      actionText: 'Coming Soon',
+    },
+    {
+      id: 'attendance-calculator',
+      name: 'Attendance Calculator',
+      desc: 'Track attendance requirements and calculate safe leaves to maintain 75%+ eligibility.',
+      emoji: '📅',
+      status: 'coming-soon',
+      href: '#',
+      actionText: 'Coming Soon',
+    },
+    {
+      id: 'timetable-generator',
+      name: 'Timetable Generator',
+      desc: 'Generate automated balanced class schedules and study revision planners.',
+      emoji: '⏰',
+      status: 'coming-soon',
+      href: '#',
+      actionText: 'Coming Soon',
+    },
+    {
+      id: 'study-search',
+      name: 'Study Search',
+      desc: 'Search your local textbook library and notes instantly with semantic indexing.',
+      emoji: '🔍',
       status: 'coming-soon',
       href: '#',
       actionText: 'Coming Soon',
@@ -115,39 +174,61 @@ export default function DashboardPage() {
       pdf_reorder: 'PDF pages reordered',
       pdf_pdf_to_images: 'PDF converted to images',
       pdf_images_to_pdf: 'Images converted to PDF',
+      resume_create: 'Resume created',
+      resume_update: 'Resume updated',
+      resume_duplicate: 'Resume duplicated',
+      resume_delete: 'Resume deleted',
+      resume_export: 'Resume exported as PDF',
     };
     return map[action] || action.replace(/_/g, ' ');
   };
 
+  const totalSavedFiles = (stats?.pdfFilesCount ?? 0) + (stats?.resumesCount ?? 0);
+
   return (
     <div className={styles.dashboard}>
-      {/* ── Welcome & Workspace Search ───────────────────────── */}
+      {/* ── Welcome & Primary Quick Actions ───────────────────── */}
       <section className={styles.welcomeSection}>
         <div className={styles.greetingRow}>
           <div>
             <h1 className={styles.greetingTitle}>
-              {getGreeting()}, {firstName} 👋
+              {getGreeting()}, {realName} 👋
             </h1>
-            <p className={styles.greetingSubtitle}>Here&apos;s your student workspace.</p>
+            <p className={styles.greetingSubtitle}>
+              Everything you need to study, organize, and build your career.
+            </p>
           </div>
+        </div>
 
-          <div className={styles.searchWrapper}>
-            <Search size={18} className={styles.searchIcon} />
-            <input
-              type="text"
-              placeholder="Search your workspace..."
-              className={styles.searchInput}
-              aria-label="Search workspace"
-              readOnly
-            />
-          </div>
+        {/* Primary Quick Action Buttons */}
+        <div className={styles.quickActionsRow}>
+          <button
+            type="button"
+            className={[styles.quickActionBtn, styles.quickActionPrimary].join(' ')}
+            onClick={() => setCreateResumeOpen(true)}
+          >
+            <Plus size={16} />
+            Create Resume
+          </button>
+          <Link href="/tools/pdf" className={styles.quickActionBtn}>
+            <FileText size={16} color="#2563eb" />
+            PDF Tools
+          </Link>
+          <Link href="/tools#study" className={styles.quickActionBtn}>
+            <Bookmark size={16} color="#7c3aed" />
+            Upload Notes
+          </Link>
+          <Link href="/tools#academic" className={styles.quickActionBtn}>
+            <Sparkles size={16} color="#059669" />
+            Calculate Percentage
+          </Link>
         </div>
       </section>
 
       {/* ── Real Statistics Cards ────────────────────────────── */}
       <section aria-label="Dashboard Statistics">
         <div className={styles.statsGrid}>
-          {/* PDF Files */}
+          {/* PDFs Processed */}
           <div className={styles.statCard}>
             <div className={[styles.statIconBox, styles.iconBlue].join(' ')}>
               <FileText size={24} />
@@ -158,13 +239,43 @@ export default function DashboardPage() {
               ) : (
                 <span className={styles.statValue}>{stats?.pdfFilesCount ?? 0}</span>
               )}
-              <span className={styles.statLabel}>PDF Files Processed</span>
+              <span className={styles.statLabel}>PDFs Processed</span>
+            </div>
+          </div>
+
+          {/* Saved Files */}
+          <div className={styles.statCard}>
+            <div className={[styles.statIconBox, styles.iconGreen].join(' ')}>
+              <FolderTree size={24} />
+            </div>
+            <div className={styles.statInfo}>
+              {loading ? (
+                <div className={styles.skeleton} style={{ width: 40, height: 28 }} />
+              ) : (
+                <span className={styles.statValue}>{totalSavedFiles}</span>
+              )}
+              <span className={styles.statLabel}>Saved Files</span>
+            </div>
+          </div>
+
+          {/* Resumes */}
+          <div className={styles.statCard}>
+            <div className={[styles.statIconBox, styles.iconPurple].join(' ')}>
+              <Sparkles size={24} />
+            </div>
+            <div className={styles.statInfo}>
+              {loading ? (
+                <div className={styles.skeleton} style={{ width: 40, height: 28 }} />
+              ) : (
+                <span className={styles.statValue}>{stats?.resumesCount ?? 0}</span>
+              )}
+              <span className={styles.statLabel}>Resumes Built</span>
             </div>
           </div>
 
           {/* Recent Activity */}
           <div className={styles.statCard}>
-            <div className={[styles.statIconBox, styles.iconPurple].join(' ')}>
+            <div className={[styles.statIconBox, styles.iconOrange].join(' ')}>
               <Activity size={24} />
             </div>
             <div className={styles.statInfo}>
@@ -176,34 +287,12 @@ export default function DashboardPage() {
               <span className={styles.statLabel}>Recent Activities</span>
             </div>
           </div>
-
-          {/* Available Tools */}
-          <div className={styles.statCard}>
-            <div className={[styles.statIconBox, styles.iconGreen].join(' ')}>
-              <CheckCircle2 size={24} />
-            </div>
-            <div className={styles.statInfo}>
-              <span className={styles.statValue}>1 Tool</span>
-              <span className={styles.statLabel}>PDF Suite Available</span>
-            </div>
-          </div>
-
-          {/* Coming Soon */}
-          <div className={styles.statCard}>
-            <div className={[styles.statIconBox, styles.iconOrange].join(' ')}>
-              <Clock size={24} />
-            </div>
-            <div className={styles.statInfo}>
-              <span className={styles.statValue}>7 Tools</span>
-              <span className={styles.statLabel}>Under Development</span>
-            </div>
-          </div>
         </div>
       </section>
 
       {/* ── Main Content Grid ─────────────────────────────────── */}
       <div className={styles.mainGrid}>
-        {/* Quick Tools */}
+        {/* Quick Tools Section */}
         <section>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Quick Tools</h2>
@@ -227,7 +316,12 @@ export default function DashboardPage() {
                 <p className={styles.toolDesc}>{tool.desc}</p>
                 <div>
                   {tool.status === 'available' ? (
-                    <Button variant="primary" size="sm" href={tool.href} id={`dashboard-tool-${tool.id}`}>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      href={tool.href}
+                      id={`dashboard-tool-${tool.id}`}
+                    >
                       {tool.actionText}
                     </Button>
                   ) : (
@@ -267,10 +361,19 @@ export default function DashboardPage() {
               <div className={styles.emptyState}>
                 <span className={styles.emptyIcon}>⏳</span>
                 <p className={styles.emptyTitle}>No recent activity</p>
-                <p className={styles.emptySubtitle}>Use PDF Tools to process your first document.</p>
-                <div style={{ marginTop: 12 }}>
-                  <Button variant="primary" size="sm" href="/tools/pdf" id="dashboard-empty-tools">
-                    Open PDF Tools
+                <p className={styles.emptySubtitle}>
+                  Create your first resume or process a PDF to view activity logs here.
+                </p>
+                <div style={{ marginTop: 12, display: 'flex', gap: '0.5rem' }}>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setCreateResumeOpen(true)}
+                  >
+                    Create Resume
+                  </Button>
+                  <Button variant="secondary" size="sm" href="/tools/pdf">
+                    PDF Tools
                   </Button>
                 </div>
               </div>
@@ -279,12 +382,19 @@ export default function DashboardPage() {
                 {activities.map((act) => (
                   <div key={act.id} className={styles.activityItem}>
                     <div className={styles.activityIconBox}>
-                      <FileText size={16} />
+                      {act.action.startsWith('resume') ? (
+                        <Sparkles size={16} />
+                      ) : (
+                        <FileText size={16} />
+                      )}
                     </div>
                     <div className={styles.activityDetails}>
                       <div className={styles.activityAction}>{formatActivityAction(act.action)}</div>
                       {typeof act.metadata?.filename === 'string' && (
                         <div className={styles.activityFilename}>&ldquo;{act.metadata.filename}&rdquo;</div>
+                      )}
+                      {typeof act.metadata?.title === 'string' && (
+                        <div className={styles.activityFilename}>&ldquo;{act.metadata.title}&rdquo;</div>
                       )}
                       <div className={styles.activityTime}>{formatRelativeTime(act.created_at)}</div>
                     </div>
@@ -295,6 +405,16 @@ export default function DashboardPage() {
           </div>
         </section>
       </div>
+
+      {/* Create Resume Modal */}
+      <CreateResumeModal
+        isOpen={createResumeOpen}
+        onClose={() => setCreateResumeOpen(false)}
+        onCreated={(id) => {
+          setCreateResumeOpen(false);
+          router.push(`/tools/resume/${id}`);
+        }}
+      />
     </div>
   );
 }

@@ -290,6 +290,7 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
   const supabase = getSupabaseClient();
 
   let pdfFilesCount = 0;
+  let resumesCount = 0;
   let activitiesCount = 0;
 
   if (supabase) {
@@ -305,12 +306,20 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
 
     pdfFilesCount = fCount || 0;
     activitiesCount = aCount || 0;
+
+    const { count: rCount } = await supabase
+      .from('resumes')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+    resumesCount = rCount || 0;
   } else {
     try {
       const files: UserFile[] = JSON.parse(localStorage.getItem(LOCAL_FILES_KEY) || '[]');
       const acts: ActivityLog[] = JSON.parse(localStorage.getItem(LOCAL_ACTIVITIES_KEY) || '[]');
+      const resumes = JSON.parse(localStorage.getItem('studenthub_local_resumes') || '[]');
       pdfFilesCount = files.filter((f) => f.user_id === userId).length;
       activitiesCount = acts.filter((a) => a.user_id === userId).length;
+      resumesCount = resumes.filter((r: { user_id?: string }) => r.user_id === userId).length;
     } catch {
       // ignore
     }
@@ -318,9 +327,10 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
 
   return {
     pdfFilesCount,
+    resumesCount,
     activitiesCount,
-    availableToolsCount: 1, // PDF Tools
-    comingSoonToolsCount: 7, // Resume, Notes, Attendance, Timetable, Study Search, Mind Map, Question Papers
+    availableToolsCount: 2, // PDF Tools & Resume Generator
+    comingSoonToolsCount: 6, // Notes, Attendance, Timetable, Study Search, Mind Map, Question Preparation
   };
 }
 

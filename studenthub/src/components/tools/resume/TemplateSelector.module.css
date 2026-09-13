@@ -1,0 +1,56 @@
+/* ============================================================
+   Template Selector Styles
+   ============================================================ */
+
+.container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f1f5f9;
+  padding: 3px;
+  border-radius: var(--radius-lg);
+}
+
+.templateBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-gray-600);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.templateBtn:hover {
+  color: var(--color-gray-900);
+}
+
+.templateBtnActive {
+  background: #ffffff;
+  color: var(--color-primary-600);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dotModern {
+  background: #2563eb;
+}
+
+.dotClassic {
+  background: #1e293b;
+}
+
+.dotMinimal {
+  background: #94a3b8;
+}

@@ -161,3 +161,40 @@ USING (
   bucket_id = 'studenthub-files' 
   AND auth.uid()::text = (storage.foldername(name))[2]
 );
+
+-- ============================================================
+-- 6. RESUMES TABLE (Phase 3)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.resumes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  template TEXT NOT NULL DEFAULT 'modern',
+  resume_data JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- Index for fast user query ordered by updated_at
+CREATE INDEX IF NOT EXISTS idx_resumes_user_id ON public.resumes(user_id, updated_at DESC);
+
+-- Enable RLS for resumes
+ALTER TABLE public.resumes ENABLE ROW LEVEL SECURITY;
+
+-- Resumes Policies
+CREATE POLICY "Users can view own resumes" 
+  ON public.resumes FOR SELECT 
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own resumes" 
+  ON public.resumes FOR INSERT 
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own resumes" 
+  ON public.resumes FOR UPDATE 
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own resumes" 
+  ON public.resumes FOR DELETE 
+  USING (auth.uid() = user_id);
+

@@ -66,15 +66,26 @@ export function ErrorState({
  * Placeholder for future Google AdSense integration.
  * Renders nothing in production until ads are configured.
  */
-export function AdSlot({ placement }: { placement: string }) {
+export function AdSlot({
+  placement,
+  slotId,
+  format,
+}: {
+  placement?: string;
+  slotId?: string;
+  format?: string;
+}) {
+  const label = slotId || placement || 'ad-banner';
   if (process.env.NODE_ENV === 'production') return null;
   return (
     <div
       className={styles.adSlot}
-      data-placement={placement}
+      data-placement={label}
+      data-format={format}
       aria-hidden="true"
     >
-      <span>Ad Slot: {placement}</span>
+      <span>Ad Slot: {label}</span>
     </div>
   );
 }
+
