@@ -1,0 +1,112 @@
+/* ============================================================
+   PDF Tools Hub Page
+   ============================================================ */
+
+.body {
+  padding-block: var(--space-10) var(--space-16);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-5);
+  margin-bottom: var(--space-8);
+}
+
+.toolLink {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toolCard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  height: 100%;
+  min-height: 180px;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.toolCard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity var(--transition-base);
+  background: linear-gradient(135deg, var(--color-primary-50), transparent);
+}
+
+.toolLink:hover .toolCard {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary-200);
+  transform: translateY(-2px);
+}
+
+.toolLink:hover .toolCard::before {
+  opacity: 1;
+}
+
+.toolIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.toolTitle {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--color-gray-900);
+  position: relative;
+}
+
+.toolDesc {
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+  line-height: var(--leading-relaxed);
+  flex: 1;
+  position: relative;
+}
+
+.toolArrow {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-primary-600);
+  position: relative;
+  transition: letter-spacing var(--transition-fast);
+}
+
+.toolLink:hover .toolArrow {
+  letter-spacing: 0.02em;
+}
+
+/* Privacy note */
+.note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-gray-50);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+  max-width: 600px;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

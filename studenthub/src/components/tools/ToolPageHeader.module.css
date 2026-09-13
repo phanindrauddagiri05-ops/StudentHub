@@ -1,0 +1,70 @@
+/* ============================================================
+   ToolPageHeader Component
+   ============================================================ */
+
+.header {
+  background: var(--color-gray-50);
+  border-bottom: 1px solid var(--color-border);
+  padding-block: var(--space-8);
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+
+.crumbWrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.crumbSep {
+  color: var(--color-gray-400);
+  margin-inline: var(--space-1);
+}
+
+.crumbLink {
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.crumbLink:hover {
+  color: var(--color-primary-600);
+}
+
+.crumbCurrent {
+  font-size: var(--text-sm);
+  color: var(--color-gray-700);
+  font-weight: var(--font-medium);
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.titleIcon {
+  font-size: 2.5rem;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.title {
+  font-size: clamp(var(--text-2xl), 3vw, var(--text-4xl));
+  font-weight: var(--font-bold);
+  color: var(--color-gray-900);
+  line-height: var(--leading-tight);
+  margin-bottom: var(--space-2);
+}
+
+.description {
+  font-size: var(--text-lg);
+  color: var(--color-gray-500);
+  line-height: var(--leading-relaxed);
+}

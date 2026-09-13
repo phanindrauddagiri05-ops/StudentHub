@@ -1,0 +1,207 @@
+/* ============================================================
+   PDF Tool Workspace — Shared
+   ============================================================ */
+
+.page {
+  padding-block: var(--space-8) var(--space-16);
+}
+
+.workspace {
+  max-width: 760px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.fileCount {
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+}
+
+.hint {
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+  font-style: italic;
+}
+
+/* Page selector */
+.pageInputRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pageInputLabel {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-700);
+}
+
+.pageInputDesc {
+  font-size: var(--text-sm);
+  color: var(--color-gray-400);
+}
+
+.pageInput {
+  height: 44px;
+  padding: 0 var(--space-4);
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-base);
+  color: var(--color-gray-800);
+  background: var(--color-surface);
+  outline: none;
+  transition: border-color var(--transition-fast);
+  width: 100%;
+}
+
+.pageInput:focus {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px rgb(59 130 246 / 0.1);
+}
+
+/* Info box */
+.infoBox {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-info-50);
+  border: 1px solid var(--color-primary-200);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  color: var(--color-primary-700);
+  line-height: var(--leading-relaxed);
+}
+
+/* Compression level */
+.levelRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.levelLabel {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-700);
+}
+
+.levelBtns {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.levelBtn {
+  flex: 1;
+  padding: var(--space-3);
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-gray-600);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: center;
+}
+
+.levelBtn:hover {
+  border-color: var(--color-primary-300);
+  color: var(--color-primary-600);
+}
+
+.levelBtnActive {
+  border-color: var(--color-primary-600);
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+}
+
+/* Image grid */
+.imageGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--space-3);
+}
+
+.imageThumb {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  aspect-ratio: 3/4;
+  background: var(--color-gray-100);
+}
+
+.imageThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.imageThumbOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.imageThumb:hover .imageThumbOverlay {
+  opacity: 1;
+}
+
+/* Download all row */
+.downloadRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+/* Image results grid */
+.imagesResultGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-4);
+}
+
+.imageResultCard {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-surface);
+}
+
+.imageResultCard img {
+  width: 100%;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  background: var(--color-gray-100);
+}
+
+.imageResultFooter {
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.imageResultLabel {
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+  font-weight: var(--font-medium);
+}
