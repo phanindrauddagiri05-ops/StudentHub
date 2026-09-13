@@ -256,6 +256,13 @@
 }
 
 /* ── How It Works ───────────────────────────────────────── */
+.toolsViewAll {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: var(--space-8);
+}
+
 .howItWorks {
   background: var(--color-gray-50);
 }

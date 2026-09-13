@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Plus } from 'lucide-react';
 import styles from './forms.module.css';
 
 interface SkillsFormProps {
@@ -54,7 +55,7 @@ export const SkillsForm: React.FC<SkillsFormProps> = ({ skills, onChange }) => {
         Add key skills relevant to your target role. Type a skill and press <strong>Enter</strong> or comma to add.
       </p>
 
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', alignItems: 'center' }}>
         <input
           type="text"
           className={styles.input}
@@ -65,11 +66,10 @@ export const SkillsForm: React.FC<SkillsFormProps> = ({ skills, onChange }) => {
         />
         <button
           type="button"
-          className={styles.addButton}
-          style={{ width: 'auto', padding: '0 1.25rem' }}
+          className={styles.inlineAddBtn}
           onClick={() => addSkill(inputVal)}
         >
-          Add
+          <Plus size={14} /> Add
         </button>
       </div>
 
@@ -107,16 +107,7 @@ export const SkillsForm: React.FC<SkillsFormProps> = ({ skills, onChange }) => {
                 key={s}
                 type="button"
                 onClick={() => addSkill(s)}
-                style={{
-                  fontSize: '0.75rem',
-                  padding: '0.25rem 0.625rem',
-                  background: '#f8fafc',
-                  border: '1px dashed #cbd5e1',
-                  borderRadius: '9999px',
-                  color: '#475569',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
+                className={styles.suggestionPill}
               >
                 + {s}
               </button>

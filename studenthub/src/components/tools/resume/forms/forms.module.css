@@ -304,25 +304,223 @@
   padding: 4px;
 }
 
-.addEntryBtn {
+.addEntryBtn,
+.addButton {
   align-self: flex-start;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
-  background: #f8fafc;
-  border: 1px dashed #cbd5e1;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
   border-radius: var(--radius-md);
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--color-primary-600);
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+  transition: all var(--transition-fast);
+}
+
+.addEntryBtn:hover,
+.addButton:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: var(--color-primary-700);
+  transform: translateY(-1px);
+}
+
+.addEntryBtn svg,
+.addButton svg {
+  flex-shrink: 0;
+}
+
+.inlineAddBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 38px;
+  padding: 0 16px;
+  background: var(--color-primary-600);
+  color: #ffffff;
+  border: 1px solid var(--color-primary-600);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.inlineAddBtn:hover {
+  background: var(--color-primary-700);
+  border-color: var(--color-primary-700);
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+  transform: translateY(-1px);
+}
+
+.inlineAddBtn svg {
+  flex-shrink: 0;
+}
+
+.suggestionPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 9999px;
+  color: #475569;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+
+.suggestionPill:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+  border-style: solid;
+}
+
+.deleteButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.deleteButton:hover {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.deleteButton svg {
+  flex-shrink: 0;
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.helpText {
+  font-size: 12.5px;
+  color: #64748b;
+  margin: 0 0 6px 0;
+  line-height: 1.4;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.twoColumn {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .twoColumn {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chipContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  min-height: 42px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.chipContainer:focus-within {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.12);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1d4ed8;
+  white-space: nowrap;
+}
+
+.chipRemove {
+  background: transparent;
+  border: none;
+  color: #60a5fa;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  transition: all 0.15s ease;
+}
+
+.chipRemove:hover {
+  background-color: #dbeafe;
+  color: #dc2626;
+}
+
+.select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--color-text);
+  background: #ffffff;
+  outline: none;
+  font-family: inherit;
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
-.addEntryBtn:hover {
-  background: #eff6ff;
-  border-color: var(--color-primary-400);
+.select:focus {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.12);
 }
 
 /* ── Section Reordering List ─────────────────────────────── */
@@ -349,3 +547,4 @@
   display: flex;
   gap: 4px;
 }
+

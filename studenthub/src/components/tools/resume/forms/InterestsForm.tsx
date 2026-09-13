@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Plus } from 'lucide-react';
 import styles from './forms.module.css';
 
 interface InterestsFormProps {
@@ -48,7 +49,7 @@ export const InterestsForm: React.FC<InterestsFormProps> = ({ interests, onChang
         Share personal interests or activities that demonstrate passion, curiosity, or teamwork.
       </p>
 
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', alignItems: 'center' }}>
         <input
           type="text"
           className={styles.input}
@@ -59,11 +60,10 @@ export const InterestsForm: React.FC<InterestsFormProps> = ({ interests, onChang
         />
         <button
           type="button"
-          className={styles.addButton}
-          style={{ width: 'auto', padding: '0 1.25rem' }}
+          className={styles.inlineAddBtn}
           onClick={() => addInterest(inputVal)}
         >
-          Add
+          <Plus size={14} /> Add
         </button>
       </div>
 
@@ -100,16 +100,7 @@ export const InterestsForm: React.FC<InterestsFormProps> = ({ interests, onChang
                 key={s}
                 type="button"
                 onClick={() => addInterest(s)}
-                style={{
-                  fontSize: '0.75rem',
-                  padding: '0.25rem 0.625rem',
-                  background: '#f8fafc',
-                  border: '1px dashed #cbd5e1',
-                  borderRadius: '9999px',
-                  color: '#475569',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
+                className={styles.suggestionPill}
               >
                 + {s}
               </button>

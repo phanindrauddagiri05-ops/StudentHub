@@ -20,6 +20,16 @@
   overflow: hidden;
 }
 
+.btn * {
+  white-space: nowrap;
+}
+
+.btn svg {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;

@@ -51,7 +51,7 @@ export default function Button({
       {icon && iconPosition === 'left' && (
         <span className={styles.btn__icon}>{icon}</span>
       )}
-      <span>{children}</span>
+      {children}
       {icon && iconPosition === 'right' && (
         <span className={styles.btn__icon}>{icon}</span>
       )}

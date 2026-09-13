@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { Plus, Trash2 } from 'lucide-react';
 import { AchievementEntry } from '@/lib/resume/types';
 import styles from './forms.module.css';
 
@@ -47,15 +48,12 @@ export const AchievementsForm: React.FC<AchievementsFormProps> = ({
             </span>
             <button
               type="button"
-              className={styles.deleteButton}
+              className={[styles.iconBtn, styles.deleteBtn].join(' ')}
               onClick={() => removeEntry(ach.id)}
               aria-label="Remove achievement"
+              title="Remove achievement"
             >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-              Remove
+              <Trash2 size={15} />
             </button>
           </div>
 
@@ -94,11 +92,8 @@ export const AchievementsForm: React.FC<AchievementsFormProps> = ({
         </div>
       ))}
 
-      <button type="button" className={styles.addButton} onClick={addAchievement}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
+      <button type="button" className={styles.addEntryBtn} onClick={addAchievement}>
+        <Plus size={14} />
         Add Achievement
       </button>
     </div>
