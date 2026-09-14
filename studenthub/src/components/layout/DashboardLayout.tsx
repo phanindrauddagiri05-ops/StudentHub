@@ -4,29 +4,24 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  BookOpen,
   LayoutDashboard,
   Wrench,
   FileText,
-  Search,
   History,
   User,
   Settings,
   LogOut,
-  Bell,
-  ChevronRight,
-  Sparkles,
+  BookOpen,
   ChevronDown,
-  FolderTree,
   GraduationCap,
   Calendar,
   Briefcase,
   Layers,
   RefreshCw,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { TOOLS } from '@/lib/tools';
-import Footer from './Footer';
 import styles from './DashboardLayout.module.css';
 
 interface DashboardLayoutProps {
@@ -53,23 +48,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     'Student';
   const initial = displayName.charAt(0).toUpperCase();
 
-  // Determine current page title and breadcrumb
-  const getPageInfo = () => {
-    if (pathname === '/dashboard') return { title: 'Dashboard', crumb: 'Home' };
-    if (pathname === '/tools') return { title: 'Tools Directory', crumb: 'Tools' };
-    if (pathname === '/tools/pdf') return { title: 'PDF Tools', crumb: 'Tools / Documents / PDF Tools' };
-    if (pathname === '/tools/document-converters') return { title: 'Document Converters', crumb: 'Tools / Documents / Document Converters' };
-    if (pathname === '/tools/resume') return { title: 'Resume Generator', crumb: 'Tools / Career / Resume' };
-    if (pathname.startsWith('/tools/resume/')) return { title: 'Resume Editor', crumb: 'Tools / Resume / Builder' };
-    if (pathname === '/history') return { title: 'Document History', crumb: 'History / Documents' };
-    if (pathname === '/history/resumes') return { title: 'Resume History', crumb: 'History / Resumes' };
-    if (pathname === '/profile') return { title: 'Student Profile', crumb: 'Account / Profile' };
-    if (pathname === '/settings') return { title: 'Account Settings', crumb: 'Account / Settings' };
-    return { title: 'StudentHub', crumb: 'Workspace' };
-  };
-
-  const pageInfo = getPageInfo();
-
   const isCurrent = (href: string, exact?: boolean) => {
     if (exact) return pathname === href;
     return pathname.startsWith(href);
@@ -78,6 +56,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const TOOL_CATEGORIES = [
     { label: 'All Tools', href: '/tools', icon: Layers, exact: true },
     { label: 'Doc Converters', href: '/tools/document-converters', icon: RefreshCw, active: true },
+    { label: 'Image Converters', href: '/tools/image-converters', icon: ImageIcon, active: true },
     { label: 'PDF Tools', href: '/tools/pdf', icon: FileText, active: true },
     { label: 'Career', href: '/tools#career', icon: Briefcase, count: 'Soon' },
     { label: 'Study', href: '/tools#study', icon: BookOpen, count: 'Soon' },
@@ -86,18 +65,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   ];
 
   return (
-    <div className={styles.shell}>
-      {/* ── Desktop Sidebar ─────────────────────────────────── */}
-      <aside className={styles.sidebar}>
-        <div className={styles.sidebarHeader}>
-          <Link href="/" className={styles.logo}>
-            <span className={styles.logoIcon}>
-              <BookOpen size={20} strokeWidth={2.5} />
-            </span>
-            <span className={styles.logoText}>StudentHub</span>
-          </Link>
-        </div>
-
+    <div className={styles.workspaceBody}>
+      {/* Desktop Sidebar (Sticky directly below GlobalNavbar) */}
+      <aside className={styles.sidebar} id="workspace-sidebar">
         <div className={styles.navSection}>
           <span className={styles.sectionTitle}>Main Workspace</span>
 
@@ -217,157 +187,50 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
       </aside>
 
-      {/* ── Main Workspace ──────────────────────────────────── */}
-      <div className={styles.mainWrapper}>
-        {/* Desktop Top Header */}
-        <header className={styles.topHeader}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.75rem', color: '#64748b' }}>
-              <span>StudentHub</span>
-              <ChevronRight size={12} />
-              <span>{pageInfo.crumb}</span>
-            </div>
-            <h1 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#0f172a', margin: '2px 0 0 0' }}>
-              {pageInfo.title}
-            </h1>
-          </div>
+      {/* Main Workspace Content Area */}
+      <main className={styles.contentArea}>{children}</main>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div className={styles.searchBar}>
-              <Search size={16} className={styles.searchIcon} />
-              <input
-                type="text"
-                placeholder="Search tools, resumes, docs..."
-                className={styles.searchInput}
-                readOnly
-                onClick={() => router.push('/tools')}
-              />
-              <span className={styles.searchShortcut}>/</span>
-            </div>
-
-            {/* Notifications Placeholder */}
-            <button
-              type="button"
-              className={styles.quickToolBtn}
-              style={{ padding: '8px', borderRadius: '8px', color: '#64748b', backgroundColor: '#f1f5f9' }}
-              title="Notifications"
-            >
-              <Bell size={18} />
-            </button>
-
-            {/* Disabled Resume Generator button (Phase 8 Coming Soon) */}
-            <button
-              type="button"
-              className={styles.quickToolBtn}
-              style={{
-                background: '#f1f5f9',
-                color: '#94a3b8',
-                cursor: 'not-allowed',
-                border: 'none',
-              }}
-              title="Resume Builder will be available in Phase 8"
-              disabled
-              id="header-resume-disabled"
-            >
-              <Sparkles size={14} />
-              <span>Resume Builder</span>
-              <span
-                style={{
-                  fontSize: '9px',
-                  fontWeight: 700,
-                  padding: '1px 5px',
-                  borderRadius: '4px',
-                  backgroundColor: '#e2e8f0',
-                  color: '#64748b',
-                }}
-              >
-                Soon
-              </span>
-            </button>
-
-            <Link href="/profile" className={styles.avatar} style={{ textDecoration: 'none' }} title={displayName}>
-              {initial}
-            </Link>
-          </div>
-        </header>
-
-        {/* Mobile Compact Header */}
-        <div className={styles.mobileHeader}>
-          <Link href="/" className={styles.logo}>
-            <span className={styles.logoIcon} style={{ width: 28, height: 28 }}>
-              <BookOpen size={16} strokeWidth={2.5} />
-            </span>
-            <span className={styles.logoText} style={{ fontSize: 'var(--text-base)' }}>
-              StudentHub
-            </span>
-          </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span
-              style={{
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                color: '#94a3b8',
-                background: '#f1f5f9',
-                padding: '4px 8px',
-                borderRadius: '6px',
-              }}
-            >
-              Resume (Soon)
-            </span>
-            <Link href="/profile" className={styles.avatar} style={{ width: 30, height: 30, fontSize: 12 }}>
-              {initial}
-            </Link>
-          </div>
-        </div>
-
-        {/* Content */}
-        <main className={styles.contentArea}>{children}</main>
-
-        {/* Workspace Footer */}
-        <Footer />
-
-        {/* Mobile Bottom Navigation */}
-        <nav className={styles.mobileBottomNav} aria-label="Mobile Bottom Navigation">
-          <Link
-            href="/dashboard"
-            className={[styles.bottomNavItem, pathname === '/dashboard' ? styles.bottomNavActive : ''].join(' ')}
-          >
-            <LayoutDashboard size={20} />
-            <span>Home</span>
-          </Link>
-          <Link
-            href="/tools"
-            className={[styles.bottomNavItem, pathname === '/tools' ? styles.bottomNavActive : ''].join(' ')}
-          >
-            <Wrench size={20} />
-            <span>Tools</span>
-          </Link>
-          <Link
-            href="/tools/document-converters"
-            className={[
-              styles.bottomNavItem,
-              pathname.startsWith('/tools/document-converters') ? styles.bottomNavActive : '',
-            ].join(' ')}
-          >
-            <RefreshCw size={20} />
-            <span>Convert</span>
-          </Link>
-          <Link
-            href="/history"
-            className={[styles.bottomNavItem, pathname.startsWith('/history') ? styles.bottomNavActive : ''].join(' ')}
-          >
-            <History size={20} />
-            <span>History</span>
-          </Link>
-          <Link
-            href="/profile"
-            className={[styles.bottomNavItem, pathname === '/profile' ? styles.bottomNavActive : ''].join(' ')}
-          >
-            <User size={20} />
-            <span>Profile</span>
-          </Link>
-        </nav>
-      </div>
+      {/* Mobile Bottom Navigation (< 900px) */}
+      <nav className={styles.mobileBottomNav} aria-label="Mobile Bottom Navigation">
+        <Link
+          href="/dashboard"
+          className={[styles.bottomNavItem, pathname === '/dashboard' ? styles.bottomNavActive : ''].join(' ')}
+        >
+          <LayoutDashboard size={20} />
+          <span>Home</span>
+        </Link>
+        <Link
+          href="/tools"
+          className={[styles.bottomNavItem, pathname === '/tools' ? styles.bottomNavActive : ''].join(' ')}
+        >
+          <Wrench size={20} />
+          <span>Tools</span>
+        </Link>
+        <Link
+          href="/tools/document-converters"
+          className={[
+            styles.bottomNavItem,
+            pathname.startsWith('/tools/document-converters') ? styles.bottomNavActive : '',
+          ].join(' ')}
+        >
+          <RefreshCw size={20} />
+          <span>Convert</span>
+        </Link>
+        <Link
+          href="/history"
+          className={[styles.bottomNavItem, pathname.startsWith('/history') ? styles.bottomNavActive : ''].join(' ')}
+        >
+          <History size={20} />
+          <span>History</span>
+        </Link>
+        <Link
+          href="/profile"
+          className={[styles.bottomNavItem, pathname === '/profile' ? styles.bottomNavActive : ''].join(' ')}
+        >
+          <User size={20} />
+          <span>Profile</span>
+        </Link>
+      </nav>
     </div>
   );
 }

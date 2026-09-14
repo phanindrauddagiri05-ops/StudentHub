@@ -12,10 +12,15 @@ export type DocumentFormat =
   | 'ppt'
   | 'txt'
   | 'csv'
-  // Future-ready for Phase 4 image converters
   | 'jpg'
   | 'png'
-  | 'webp';
+  | 'webp'
+  | 'gif'
+  | 'bmp'
+  | 'tiff'
+  | 'heic'
+  | 'heif'
+  | 'svg';
 
 export type ConversionCategory =
   | 'popular'
@@ -24,7 +29,15 @@ export type ConversionCategory =
   | 'excel'
   | 'powerpoint'
   | 'text'
-  | 'data';
+  | 'data'
+  | 'image';
+
+export interface ImageConversionOptions {
+  quality?: number; // 1-100, default 80
+  backgroundColor?: string; // e.g. '#ffffff' for jpg
+  width?: number;
+  height?: number;
+}
 
 export interface FormatMetadata {
   format: DocumentFormat;

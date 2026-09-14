@@ -139,11 +139,11 @@ export const FORMATS: Record<DocumentFormat, FormatMetadata> = {
     group: 'data',
   },
 
-  // Future Phase 4 formats
+  // Image Formats
   jpg: {
     format: 'jpg',
     extension: '.jpg',
-    mimeTypes: ['image/jpeg'],
+    mimeTypes: ['image/jpeg', 'image/jpg'],
     displayName: 'JPEG Image',
     shortName: 'JPG',
     icon: '🖼️',
@@ -176,6 +176,78 @@ export const FORMATS: Record<DocumentFormat, FormatMetadata> = {
     badgeText: '#0891b2',
     group: 'image',
   },
+  gif: {
+    format: 'gif',
+    extension: '.gif',
+    mimeTypes: ['image/gif'],
+    displayName: 'Graphics Interchange Format',
+    shortName: 'GIF',
+    icon: '🎞️',
+    color: '#ec4899',
+    badgeBg: '#fdf2f8',
+    badgeText: '#be185d',
+    group: 'image',
+  },
+  bmp: {
+    format: 'bmp',
+    extension: '.bmp',
+    mimeTypes: ['image/bmp', 'image/x-ms-bmp'],
+    displayName: 'Bitmap Image',
+    shortName: 'BMP',
+    icon: '🖼️',
+    color: '#6366f1',
+    badgeBg: '#eef2ff',
+    badgeText: '#4338ca',
+    group: 'image',
+  },
+  tiff: {
+    format: 'tiff',
+    extension: '.tiff',
+    mimeTypes: ['image/tiff', 'image/x-tiff'],
+    displayName: 'Tagged Image File',
+    shortName: 'TIFF',
+    icon: '📸',
+    color: '#14b8a6',
+    badgeBg: '#f0fdfa',
+    badgeText: '#0f766e',
+    group: 'image',
+  },
+  heic: {
+    format: 'heic',
+    extension: '.heic',
+    mimeTypes: ['image/heic', 'image/heif'],
+    displayName: 'High Efficiency Image',
+    shortName: 'HEIC',
+    icon: '📱',
+    color: '#0284c7',
+    badgeBg: '#f0f9ff',
+    badgeText: '#0369a1',
+    group: 'image',
+  },
+  heif: {
+    format: 'heif',
+    extension: '.heif',
+    mimeTypes: ['image/heif', 'image/heic'],
+    displayName: 'High Efficiency Image Format',
+    shortName: 'HEIF',
+    icon: '📱',
+    color: '#0284c7',
+    badgeBg: '#f0f9ff',
+    badgeText: '#0369a1',
+    group: 'image',
+  },
+  svg: {
+    format: 'svg',
+    extension: '.svg',
+    mimeTypes: ['image/svg+xml'],
+    displayName: 'Scalable Vector Graphics',
+    shortName: 'SVG',
+    icon: '📐',
+    color: '#f59e0b',
+    badgeBg: '#fffbeb',
+    badgeText: '#b45309',
+    group: 'image',
+  },
 };
 
 export function getFormatMetadata(format: DocumentFormat): FormatMetadata {
@@ -199,6 +271,7 @@ export function detectFormatFromFilename(filename: string): DocumentFormat | nul
   const ext = filename.split('.').pop()?.toLowerCase();
   if (!ext) return null;
   if (ext === 'jpeg') return 'jpg';
+  if (ext === 'tif') return 'tiff';
   if (ext in FORMATS) return ext as DocumentFormat;
   return null;
 }

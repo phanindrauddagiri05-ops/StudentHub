@@ -1,10 +1,12 @@
 import { getSupabaseClient } from '@/lib/supabase/client';
+import { isImageFormat } from '@/lib/converters/registry';
 import type {
   UserFile,
   ActivityLog,
   DashboardStats,
   PdfOperationType,
   UnifiedHistoryItem,
+  HistoryToolType,
   DocumentConversionRecord,
 } from '@/types/database';
 
@@ -103,70 +105,80 @@ export async function saveProcessedFile({
   const storagePath = `users/${userId}/pdfs/${timestamp}_${cleanName}`;
   const fileId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `file_${timestamp}`;
 
-  if (supabase) {
-    // 1. Upload to Supabase Storage
-    const { error: uploadError } = await supabase.storage
-      .from(BUCKET_NAME)
-      .upload(storagePath, blob, {
-        contentType: mimeType,
-        upsert: false,
+  if (supabase && userId !== 'guest') {
+    try {
+      // 1. Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from(BUCKET_NAME)
+        .upload(storagePath, blob, {
+          contentType: mimeType,
+          upsert: false,
+        });
+
+      if (uploadError) {
+        console.error('Storage upload failed, falling back to local storage:', uploadError);
+        throw uploadError;
+      }
+
+      // 2. Insert into files table
+      const { data: fileRow, error: dbError } = await supabase
+        .from('files')
+        .insert({
+          id: fileId,
+          user_id: userId,
+          original_name: filename,
+          storage_path: storagePath,
+          mime_type: mimeType,
+          file_size: fileSize,
+          operation,
+          status: 'completed',
+        })
+        .select()
+        .single();
+
+      if (dbError) {
+        console.error('Files DB insert failed, falling back to local storage:', dbError);
+        throw dbError;
+      }
+
+      // 3. Insert into activity_logs
+      const { error: actError } = await supabase.from('activity_logs').insert({
+        user_id: userId,
+        action: `pdf_${operation}`,
+        resource_type: 'pdf',
+        resource_id: fileRow.id,
+        metadata: {
+          filename,
+          file_size: fileSize,
+          operation,
+        },
       });
 
-    if (uploadError) {
-      console.error('Storage upload failed:', uploadError);
-      throw new Error('Failed to save file to secure storage.');
+      if (actError) {
+        console.error('Activity logs insert error:', actError);
+      }
+
+      return fileRow as UserFile;
+    } catch (supaErr) {
+      console.error('Supabase persistence failure in saveProcessedFile. Safely falling back to local cache:', supaErr);
+      // Fall through to local fallback below
     }
+  }
 
-    // 2. Insert into files table
-    const { data: fileRow, error: dbError } = await supabase
-      .from('files')
-      .insert({
-        id: fileId,
-        user_id: userId,
-        original_name: filename,
-        storage_path: storagePath,
-        mime_type: mimeType,
-        file_size: fileSize,
-        operation,
-        status: 'completed',
-      })
-      .select()
-      .single();
+  // Fallback: Store metadata in localStorage & blob in IndexedDB
+  const newFile: UserFile = {
+    id: fileId,
+    user_id: userId,
+    original_name: filename,
+    storage_path: storagePath,
+    mime_type: mimeType,
+    file_size: fileSize,
+    operation,
+    status: 'completed',
+    created_at: new Date().toISOString(),
+  };
 
-    if (dbError) {
-      console.error('Files DB insert failed:', dbError);
-      throw new Error('Failed to record file metadata.');
-    }
-
-    // 3. Insert into activity_logs
-    await supabase.from('activity_logs').insert({
-      user_id: userId,
-      action: `pdf_${operation}`,
-      resource_type: 'pdf',
-      resource_id: fileRow.id,
-      metadata: {
-        filename,
-        file_size: fileSize,
-        operation,
-      },
-    });
-
-    return fileRow as UserFile;
-  } else {
-    // Fallback: Store metadata in localStorage & blob in IndexedDB
-    const newFile: UserFile = {
-      id: fileId,
-      user_id: userId,
-      original_name: filename,
-      storage_path: storagePath,
-      mime_type: mimeType,
-      file_size: fileSize,
-      operation,
-      status: 'completed',
-      created_at: new Date().toISOString(),
-    };
-
-    await saveBlobLocally(fileId, blob);
+  await saveBlobLocally(fileId, blob);
 
     try {
       const stored = localStorage.getItem(LOCAL_FILES_KEY);
@@ -196,7 +208,6 @@ export async function saveProcessedFile({
     }
 
     return newFile;
-  }
 }
 
 // ------------------------------------------------------------
@@ -299,6 +310,7 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
 
   let pdfFilesCount = 0;
   let documentsConvertedCount = 0;
+  let imagesConvertedCount = 0;
   let activitiesCount = 0;
 
   if (supabase) {
@@ -307,9 +319,9 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId);
 
-    const { count: cCount } = await supabase
+    const { data: convData } = await supabase
       .from('document_conversions')
-      .select('*', { count: 'exact', head: true })
+      .select('source_format, target_format')
       .eq('user_id', userId);
 
     const { count: aCount } = await supabase
@@ -318,7 +330,15 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
       .eq('user_id', userId);
 
     pdfFilesCount = fCount || 0;
-    documentsConvertedCount = cCount || 0;
+    if (convData) {
+      for (const row of convData) {
+        if (isImageFormat(row.source_format) || isImageFormat(row.target_format)) {
+          imagesConvertedCount++;
+        } else {
+          documentsConvertedCount++;
+        }
+      }
+    }
     activitiesCount = aCount || 0;
   } else {
     try {
@@ -326,7 +346,13 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
       const acts: ActivityLog[] = JSON.parse(localStorage.getItem(LOCAL_ACTIVITIES_KEY) || '[]');
       const convs = JSON.parse(localStorage.getItem(LOCAL_CONVERSIONS_KEY) || '[]');
       pdfFilesCount = files.filter((f) => f.user_id === userId).length;
-      documentsConvertedCount = convs.filter((c: { user_id?: string }) => c.user_id === userId || !c.user_id).length;
+      for (const c of convs.filter((x: { user_id?: string }) => x.user_id === userId || !x.user_id)) {
+        if (isImageFormat(c.source_format) || isImageFormat(c.target_format)) {
+          imagesConvertedCount++;
+        } else {
+          documentsConvertedCount++;
+        }
+      }
       activitiesCount = acts.filter((a) => a.user_id === userId).length;
     } catch {
       // ignore
@@ -336,14 +362,15 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
   return {
     pdfFilesCount,
     documentsConvertedCount,
+    imagesConvertedCount,
     activitiesCount,
-    availableToolsCount: 2, // PDF Tools & Document Converters
+    availableToolsCount: 3, // PDF Tools, Document Converters & Image Converters
     comingSoonToolsCount: 6, // Notes, Attendance, Timetable, Study Search, Mind Map, Question Preparation
   };
 }
 
 // ------------------------------------------------------------
-// UNIFIED HISTORY SYSTEM (PDF + DOCUMENT CONVERTERS)
+// UNIFIED HISTORY SYSTEM (PDF + DOCUMENT CONVERTERS + IMAGE CONVERTERS)
 // ------------------------------------------------------------
 export async function getUnifiedHistory({
   userId,
@@ -353,7 +380,7 @@ export async function getUnifiedHistory({
 }: {
   userId: string;
   search?: string;
-  toolType?: 'all' | 'pdf' | 'document_converter';
+  toolType?: 'all' | 'pdf' | 'document_converter' | 'image_converter';
   operation?: string;
 }): Promise<UnifiedHistoryItem[]> {
   const supabase = getSupabaseClient();
@@ -405,8 +432,8 @@ export async function getUnifiedHistory({
       }
     }
 
-    // 2. Fetch Document Conversions if toolType is 'all' or 'document_converter'
-    if (toolType === 'all' || toolType === 'document_converter') {
+    // 2. Fetch Document & Image Conversions
+    if (toolType === 'all' || toolType === 'document_converter' || toolType === 'image_converter') {
       const { data: convData, error: convError } = await supabase
         .from('document_conversions')
         .select('*')
@@ -415,11 +442,17 @@ export async function getUnifiedHistory({
 
       if (!convError && convData) {
         for (const c of convData as DocumentConversionRecord[]) {
-          const opLabel = `${(c.source_format || 'DOC').toUpperCase()} → ${(c.target_format || 'PDF').toUpperCase()}`;
+          const isImg = isImageFormat(c.source_format) || isImageFormat(c.target_format);
+          const itemToolType: HistoryToolType = isImg ? 'image_converter' : 'document_converter';
+
+          if (toolType === 'document_converter' && isImg) continue;
+          if (toolType === 'image_converter' && !isImg) continue;
+
+          const opLabel = `${(c.source_format || 'IMG').toUpperCase()} → ${(c.target_format || 'IMG').toUpperCase()}`;
           items.push({
             id: c.id,
             userId: c.user_id,
-            toolType: 'document_converter',
+            toolType: itemToolType,
             sourceFilename: c.source_filename,
             outputFilename: c.output_filename,
             displayFilename: c.source_filename,
@@ -461,18 +494,34 @@ export async function getUnifiedHistory({
         }
       }
 
-      if (toolType === 'all' || toolType === 'document_converter') {
+      if (toolType === 'all' || toolType === 'document_converter' || toolType === 'image_converter') {
         const stored = localStorage.getItem(LOCAL_CONVERSIONS_KEY);
-        const list = stored ? JSON.parse(stored) : [];
+        const legacyStored = localStorage.getItem('studenthub_local_conversions');
+        const listA = stored ? JSON.parse(stored) : [];
+        const listB = legacyStored ? JSON.parse(legacyStored) : [];
+        const combined = [...listA, ...listB];
+        const uniqueConvs = new Map<string, any>();
+        for (const item of combined) {
+          if (item?.id && !uniqueConvs.has(item.id)) {
+            uniqueConvs.set(item.id, item);
+          }
+        }
+        const list = Array.from(uniqueConvs.values());
         for (const c of list) {
-          const opLabel = `${(c.source_format || 'DOC').toUpperCase()} → ${(c.target_format || 'PDF').toUpperCase()}`;
+          const isImg = isImageFormat(c.source_format) || isImageFormat(c.target_format);
+          const itemToolType: HistoryToolType = isImg ? 'image_converter' : 'document_converter';
+
+          if (toolType === 'document_converter' && isImg) continue;
+          if (toolType === 'image_converter' && !isImg) continue;
+
+          const opLabel = `${(c.source_format || 'IMG').toUpperCase()} → ${(c.target_format || 'IMG').toUpperCase()}`;
           items.push({
             id: c.id,
             userId: c.user_id || userId,
-            toolType: 'document_converter',
-            sourceFilename: c.source_filename || 'document',
-            outputFilename: c.output_filename || 'document.pdf',
-            displayFilename: c.source_filename || 'document',
+            toolType: itemToolType,
+            sourceFilename: c.source_filename || 'image',
+            outputFilename: c.output_filename || 'image.jpg',
+            displayFilename: c.source_filename || 'image',
             sourceFormat: c.source_format,
             targetFormat: c.target_format,
             operation: `${c.source_format}_to_${c.target_format}`,
@@ -661,7 +710,14 @@ export async function deleteUnifiedHistoryItem(item: UnifiedHistoryItem): Promis
           const list = JSON.parse(stored);
           localStorage.setItem(LOCAL_CONVERSIONS_KEY, JSON.stringify(list.filter((c: { id?: string }) => c.id !== item.id)));
         }
-      } catch {}
+        const legacyStored = localStorage.getItem('studenthub_local_conversions');
+        if (legacyStored) {
+          const list = JSON.parse(legacyStored);
+          localStorage.setItem('studenthub_local_conversions', JSON.stringify(list.filter((c: { id?: string }) => c.id !== item.id)));
+        }
+      } catch (err) {
+        console.error('Error deleting from local conversion cache:', err);
+      }
     }
   }
 }

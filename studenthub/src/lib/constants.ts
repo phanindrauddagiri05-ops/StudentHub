@@ -29,6 +29,14 @@ export const ACCEPTED_IMAGE_EXTENSIONS = '.jpg,.jpeg,.png,.webp';
 // PDF worker (pdfjs-dist)
 export const PDF_WORKER_URL = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs`;
 
+// Image conversion limits
+export const MAX_IMAGE_CONVERSION_FILE_SIZE_MB = 20;
+export const MAX_IMAGE_CONVERSION_FILE_SIZE_BYTES =
+  MAX_IMAGE_CONVERSION_FILE_SIZE_MB * 1024 * 1024;
+export const MAX_IMAGE_DIMENSION_PIXELS = 8192;
+export const ACCEPTED_IMAGE_CONVERTER_EXTENSIONS =
+  '.jpg,.jpeg,.png,.webp,.gif,.bmp,.tiff,.tif,.heic,.heif,.svg';
+
 // Routes
 export const ROUTES = {
   home: '/',
@@ -41,6 +49,7 @@ export const ROUTES = {
   pdfReorder: '/tools/pdf/reorder',
   pdfCompress: '/tools/pdf/compress',
   documentConverters: '/tools/document-converters',
+  imageConverters: '/tools/image-converters',
   resume: '/tools/resume',
   login: '/login',
   signup: '/signup',

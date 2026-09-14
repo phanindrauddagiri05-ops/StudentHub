@@ -5,12 +5,17 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   FileText,
-  Activity,
+  ArrowRight,
   Sparkles,
-  Plus,
-  Bookmark,
+  Download,
   FolderTree,
+  Activity,
+  User,
+  ExternalLink,
+  Plus,
   RefreshCw,
+  Bookmark,
+  Image as ImageIcon,
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
@@ -83,6 +88,15 @@ export default function DashboardPage() {
       emoji: '🔄',
       status: 'available',
       href: '/tools/document-converters',
+      actionText: 'Open Tool',
+    },
+    {
+      id: 'image-converters',
+      name: 'Image Converters',
+      desc: 'Convert images across JPG, PNG, WebP, HEIC, GIF, BMP, TIFF, and SVG quickly.',
+      emoji: '🖼️',
+      status: 'available',
+      href: '/tools/image-converters',
       actionText: 'Open Tool',
     },
     {
@@ -191,11 +205,15 @@ export default function DashboardPage() {
       resume_delete: 'Resume deleted',
       resume_export: 'Resume exported as PDF',
       document_conversion: 'Document converted',
+      image_conversion: 'Image converted',
     };
     return map[action] || action.replace(/_/g, ' ');
   };
 
-  const totalSavedFiles = (stats?.pdfFilesCount ?? 0) + (stats?.documentsConvertedCount ?? 0);
+  const totalSavedFiles =
+    (stats?.pdfFilesCount ?? 0) +
+    (stats?.documentsConvertedCount ?? 0) +
+    (stats?.imagesConvertedCount ?? 0);
 
   return (
     <div className={styles.dashboard}>
@@ -215,11 +233,19 @@ export default function DashboardPage() {
         {/* Primary Quick Action Buttons */}
         <div className={styles.quickActionsRow}>
           <Link
-            href="/tools/document-converters"
+            href="/tools/image-converters"
             className={[styles.quickActionBtn, styles.quickActionPrimary].join(' ')}
+            id="quick-action-image-convert"
+          >
+            <ImageIcon size={16} />
+            Convert Image
+          </Link>
+          <Link
+            href="/tools/document-converters"
+            className={styles.quickActionBtn}
             id="quick-action-convert"
           >
-            <RefreshCw size={16} />
+            <RefreshCw size={16} color="#0284c7" />
             Convert Document
           </Link>
           <Link href="/tools/pdf" className={styles.quickActionBtn}>
@@ -229,10 +255,6 @@ export default function DashboardPage() {
           <Link href="/tools#study" className={styles.quickActionBtn}>
             <Bookmark size={16} color="#7c3aed" />
             Upload Notes
-          </Link>
-          <Link href="/tools#academic" className={styles.quickActionBtn}>
-            <Sparkles size={16} color="#059669" />
-            Calculate Percentage
           </Link>
         </div>
       </section>
@@ -267,6 +289,21 @@ export default function DashboardPage() {
                 <span className={styles.statValue}>{stats?.documentsConvertedCount ?? 0}</span>
               )}
               <span className={styles.statLabel}>Documents Converted</span>
+            </div>
+          </div>
+
+          {/* Images Converted (Phase 4) */}
+          <div className={styles.statCard}>
+            <div className={[styles.statIconBox, styles.iconPurple].join(' ')}>
+              <ImageIcon size={24} />
+            </div>
+            <div className={styles.statInfo}>
+              {loading ? (
+                <div className={styles.skeleton} style={{ width: 40, height: 28 }} />
+              ) : (
+                <span className={styles.statValue}>{stats?.imagesConvertedCount ?? 0}</span>
+              )}
+              <span className={styles.statLabel}>Images Converted</span>
             </div>
           </div>
 
@@ -376,11 +413,14 @@ export default function DashboardPage() {
                 <p className={styles.emptySubtitle}>
                   Process a PDF or convert a document to view your activity logs here.
                 </p>
-                <div style={{ marginTop: 12, display: 'flex', gap: '0.5rem' }}>
-                  <Button variant="primary" size="sm" href="/tools/document-converters">
+                <div style={{ marginTop: 12, display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <Button variant="primary" size="sm" href="/tools/image-converters">
+                    Convert Image
+                  </Button>
+                  <Button variant="secondary" size="sm" href="/tools/document-converters">
                     Convert Document
                   </Button>
-                  <Button variant="secondary" size="sm" href="/tools/pdf">
+                  <Button variant="outline" size="sm" href="/tools/pdf">
                     PDF Tools
                   </Button>
                 </div>
@@ -390,7 +430,9 @@ export default function DashboardPage() {
                 {activities.map((act) => (
                   <div key={act.id} className={styles.activityItem}>
                     <div className={styles.activityIconBox}>
-                      {act.action === 'document_conversion' ? (
+                      {act.action === 'image_conversion' ? (
+                        <ImageIcon size={16} />
+                      ) : act.action === 'document_conversion' ? (
                         <RefreshCw size={16} />
                       ) : act.action.startsWith('resume') ? (
                         <Sparkles size={16} />
@@ -400,9 +442,11 @@ export default function DashboardPage() {
                     </div>
                     <div className={styles.activityDetails}>
                       <div className={styles.activityAction}>{formatActivityAction(act.action)}</div>
-                      {act.action === 'document_conversion' && typeof act.metadata?.source_filename === 'string' ? (
+                      {(act.action === 'document_conversion' || act.action === 'image_conversion') &&
+                      typeof act.metadata?.source_filename === 'string' ? (
                         <div className={styles.activityFilename}>
-                          &ldquo;{act.metadata.source_filename}&rdquo; → {String(act.metadata.target_format || 'PDF').toUpperCase()}
+                          &ldquo;{act.metadata.source_filename}&rdquo; →{' '}
+                          {String(act.metadata.target_format || 'IMG').toUpperCase()}
                         </div>
                       ) : typeof act.metadata?.filename === 'string' ? (
                         <div className={styles.activityFilename}>&ldquo;{act.metadata.filename}&rdquo;</div>

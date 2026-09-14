@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeServerConversion } from '@/lib/converters/server';
-import { getConversion, getCompatibleTargets } from '@/lib/converters/registry';
+import { getConversion, getCompatibleTargets, isImageFormat } from '@/lib/converters/registry';
 import { DocumentFormat } from '@/lib/converters/types';
 import { detectFormatFromFilename } from '@/lib/converters/formats';
-import { MAX_DOCUMENT_CONVERSION_FILE_SIZE_BYTES } from '@/lib/constants';
+import {
+  MAX_DOCUMENT_CONVERSION_FILE_SIZE_BYTES,
+  MAX_DOCUMENT_CONVERSION_FILE_SIZE_MB,
+  MAX_IMAGE_CONVERSION_FILE_SIZE_BYTES,
+  MAX_IMAGE_CONVERSION_FILE_SIZE_MB,
+} from '@/lib/constants';
 import { getSupabaseClient } from '@/lib/supabase/client';
 
 export async function POST(req: NextRequest) {
@@ -12,7 +17,22 @@ export async function POST(req: NextRequest) {
     const file = formData.get('file') as File | null;
     let sourceFormat = formData.get('sourceFormat') as DocumentFormat | null;
     const targetFormat = formData.get('targetFormat') as DocumentFormat | null;
-    const userId = (formData.get('userId') as string) || 'anonymous';
+    let verifiedUserId = (formData.get('userId') as string) || 'guest';
+    const supabase = getSupabaseClient();
+
+    // Check bearer token for authentic server-side identity verification
+    const authHeader = req.headers.get('authorization');
+    if (supabase && authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      try {
+        const { data: userData, error: userError } = await supabase.auth.getUser(token);
+        if (!userError && userData?.user?.id) {
+          verifiedUserId = userData.user.id;
+        }
+      } catch (authErr) {
+        console.warn('Bearer token verification failed in /api/convert:', authErr);
+      }
+    }
 
     if (!file) {
       return NextResponse.json({ success: false, error: 'No document file provided.' }, { status: 400 });
@@ -56,24 +76,37 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Check file size
-    if (file.size > MAX_DOCUMENT_CONVERSION_FILE_SIZE_BYTES) {
+    // Check file size limit based on type
+    const isImage = isImageFormat(sourceFormat) && isImageFormat(targetFormat);
+    const maxSizeBytes = isImage
+      ? MAX_IMAGE_CONVERSION_FILE_SIZE_BYTES
+      : MAX_DOCUMENT_CONVERSION_FILE_SIZE_BYTES;
+    const maxSizeMB = isImage
+      ? MAX_IMAGE_CONVERSION_FILE_SIZE_MB
+      : MAX_DOCUMENT_CONVERSION_FILE_SIZE_MB;
+
+    if (file.size > maxSizeBytes) {
       return NextResponse.json(
         {
           success: false,
-          error: `File size exceeds the 25 MB limit (${(file.size / (1024 * 1024)).toFixed(1)} MB).`,
+          error: `File size exceeds the ${maxSizeMB}MB limit for this converter.`,
         },
         { status: 400 }
       );
     }
 
-    // Validate conversion availability
+    // Extract optional image conversion parameters
+    const qualityStr = formData.get('quality') as string | null;
+    const quality = qualityStr ? parseInt(qualityStr, 10) : undefined;
+    const backgroundColor = (formData.get('backgroundColor') as string | null) || undefined;
+
+    // Lookup definition
     const definition = getConversion(sourceFormat, targetFormat);
     if (!definition) {
       return NextResponse.json(
         {
           success: false,
-          error: `Conversion from ${sourceFormat.toUpperCase()} to ${targetFormat.toUpperCase()} is not recognized.`,
+          error: `Unsupported conversion from ${sourceFormat.toUpperCase()} to ${targetFormat.toUpperCase()}.`,
         },
         { status: 400 }
       );
@@ -97,16 +130,20 @@ export async function POST(req: NextRequest) {
       targetFormat,
       inputBuffer,
       sourceFilename: file.name,
+      options: {
+        quality,
+        backgroundColor,
+      },
     });
 
     const timestamp = Date.now();
     const conversionId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `conv_${timestamp}`;
-    const storagePath = `users/${userId}/conversions/${timestamp}_${outputFilename}`;
+    const storageFolder = isImage ? 'image-conversions' : 'conversions';
+    const storagePath = `users/${verifiedUserId}/${storageFolder}/${timestamp}_${outputFilename}`;
 
     let downloadUrl: string | undefined;
-    const supabase = getSupabaseClient();
 
-    if (supabase && userId !== 'anonymous') {
+    if (supabase && verifiedUserId !== 'anonymous' && verifiedUserId !== 'guest') {
       try {
         // Upload converted file to private storage
         const { error: uploadError } = await supabase.storage
@@ -118,18 +155,18 @@ export async function POST(req: NextRequest) {
 
         if (!uploadError) {
           // Generate signed URL for 2 hours
-          const { data: signData } = await supabase.storage
+          const { data: signData, error: signError } = await supabase.storage
             .from('studenthub-files')
             .createSignedUrl(storagePath, 60 * 120, { download: outputFilename });
 
-          if (signData?.signedUrl) {
+          if (!signError && signData?.signedUrl) {
             downloadUrl = signData.signedUrl;
           }
 
           // Insert into document_conversions table
-          await supabase.from('document_conversions').insert({
+          const { error: dbError } = await supabase.from('document_conversions').insert({
             id: conversionId,
-            user_id: userId,
+            user_id: verifiedUserId,
             source_filename: file.name,
             source_format: sourceFormat,
             target_format: targetFormat,
@@ -140,21 +177,33 @@ export async function POST(req: NextRequest) {
             status: 'completed',
           });
 
+          if (dbError) {
+            console.error('Supabase document_conversions insert error:', dbError);
+          }
+
           // Log activity
-          await supabase.from('activity_logs').insert({
-            user_id: userId,
-            action: `document_conversion`,
-            resource_type: 'document',
+          const { error: actError } = await supabase.from('activity_logs').insert({
+            user_id: verifiedUserId,
+            action: isImage ? 'image_conversion' : 'document_conversion',
+            resource_type: isImage ? 'image' : 'document',
+            resource_id: conversionId,
             metadata: {
               source_filename: file.name,
               source_format: sourceFormat,
               target_format: targetFormat,
               output_filename: outputFilename,
+              tool_type: isImage ? 'image_converter' : 'document_converter',
             },
           });
+
+          if (actError) {
+            console.error('Supabase activity_logs insert error:', actError);
+          }
+        } else {
+          console.error('Supabase storage upload error in /api/convert:', uploadError);
         }
       } catch (storageErr) {
-        console.warn('Supabase storage save warning, falling back to data URL:', storageErr);
+        console.error('Supabase storage or DB save error, falling back to data URL:', storageErr);
       }
     }
 
@@ -168,7 +217,7 @@ export async function POST(req: NextRequest) {
       success: true,
       record: {
         id: conversionId,
-        user_id: userId,
+        user_id: verifiedUserId,
         source_filename: file.name,
         source_format: sourceFormat,
         target_format: targetFormat,

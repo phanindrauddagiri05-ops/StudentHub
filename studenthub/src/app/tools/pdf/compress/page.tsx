@@ -34,18 +34,17 @@ export default function CompressPdfPage() {
       const output = await compressPdf(files[0].file, level);
       setResult(output);
 
-      if (user) {
-        try {
-          await saveProcessedFile({
-            userId: user.id,
-            data: output.data,
-            filename: 'compressed.pdf',
-            operation: 'compress',
-            mimeType: 'application/pdf',
-          });
-        } catch (saveErr) {
-          console.warn('Could not save to history:', saveErr);
-        }
+      const activeUserId = user?.id || 'guest';
+      try {
+        await saveProcessedFile({
+          userId: activeUserId,
+          data: output.data,
+          filename: 'compressed.pdf',
+          operation: 'compress',
+          mimeType: 'application/pdf',
+        });
+      } catch (saveErr) {
+        console.error('Could not save to history:', saveErr);
       }
 
       setState('success');
@@ -132,7 +131,7 @@ export default function CompressPdfPage() {
                 filename="compressed.pdf"
                 fileSize={result.newSize}
                 operation="Compress"
-                savedToHistory={Boolean(user)}
+                savedToHistory={true}
                 onDownload={() => downloadBlob(result.data, 'compressed.pdf')}
                 onReset={handleReset}
                 downloadLabel="Download Compressed PDF"

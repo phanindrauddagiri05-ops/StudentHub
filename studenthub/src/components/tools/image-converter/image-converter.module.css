@@ -1,0 +1,536 @@
+/* ============================================================
+   StudentHub — Image Converter Styles (Phase 4)
+   Responsive, fluid, modern CSS with polished micro-animations
+   and strict prefers-reduced-motion accessibility support.
+   ============================================================ */
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-tertiary, #64748b);
+  margin-bottom: 1.25rem;
+}
+
+.breadcrumb a {
+  color: var(--text-secondary, #475569);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.breadcrumb a:hover {
+  color: var(--color-primary, #2563eb);
+}
+
+.headerSection {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--text-primary, #0f172a);
+  letter-spacing: -0.025em;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.titleIcon {
+  font-size: 2rem;
+}
+
+.subtitle {
+  font-size: 1.125rem;
+  color: var(--text-secondary, #475569);
+  max-width: 580px;
+  margin: 0 auto;
+}
+
+/* ── Main Conversion Box ── */
+.converterCard {
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 1.25rem;
+  padding: 2rem;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2.5rem;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+/* ── Format Selectors Row ── */
+.selectorRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.selectorGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 160px;
+}
+
+.selectorLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary, #64748b);
+}
+
+.formatSelect {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  border: 1.5px solid var(--border-color, #cbd5e1);
+  background: var(--bg-surface, #ffffff);
+  color: var(--text-primary, #0f172a);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.formatSelect:focus {
+  border-color: var(--color-primary, #2563eb);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.arrowDivider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary, #94a3b8);
+  margin-top: 1.25rem;
+}
+
+/* ── Upload Dropzone ── */
+.dropzone {
+  border: 2px dashed var(--border-color, #cbd5e1);
+  border-radius: 1rem;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  background: var(--bg-surface-alt, #f8fafc);
+  transition: border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-bottom: 1.5rem;
+  outline: none;
+}
+
+.dropzone:hover,
+.dropzoneActive {
+  border-color: var(--color-primary, #2563eb);
+  background: #eff6ff;
+  transform: scale(1.006);
+}
+
+.dropIcon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 1rem;
+  color: var(--color-primary, #2563eb);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dropzone:hover .dropIcon,
+.dropzoneActive .dropIcon {
+  transform: translateY(-4px);
+}
+
+.dropText {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary, #0f172a);
+  margin-bottom: 0.375rem;
+}
+
+.dropSubtext {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #64748b);
+  margin-bottom: 1rem;
+}
+
+.formatBadges {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  background: #e2e8f0;
+  color: #334155;
+}
+
+/* ── Image Preview Card ── */
+.previewCard {
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 1rem;
+  background: var(--bg-surface-alt, #f8fafc);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: slideInUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-bottom: 1.5rem;
+}
+
+.previewThumbnailContainer {
+  width: 100%;
+  max-width: 480px;
+  max-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.previewThumbnail {
+  max-width: 100%;
+  max-height: 240px;
+  object-fit: contain;
+  display: block;
+}
+
+.previewDetails {
+  text-align: center;
+  width: 100%;
+}
+
+.previewFilename {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--text-primary, #0f172a);
+  word-break: break-all;
+  margin-bottom: 0.25rem;
+}
+
+.previewMeta {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #64748b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.conversionRelationBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+}
+
+/* ── Quality Control Slider ── */
+.qualitySection {
+  width: 100%;
+  max-width: 480px;
+  margin: 1.25rem auto;
+  padding: 1rem;
+  background: #ffffff;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 0.75rem;
+}
+
+.qualityHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary, #0f172a);
+}
+
+.qualityValue {
+  font-size: 0.8125rem;
+  color: var(--color-primary, #2563eb);
+  background: #eff6ff;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.375rem;
+}
+
+.qualitySlider {
+  width: 100%;
+  accent-color: var(--color-primary, #2563eb);
+  cursor: pointer;
+}
+
+.qualityLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-tertiary, #94a3b8);
+  margin-top: 0.25rem;
+}
+
+/* ── Buttons Row ── */
+.actionsRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+/* ── Progress / Processing State ── */
+.progressCard {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.spinner {
+  width: 44px;
+  height: 44px;
+  border: 3.5px solid #e2e8f0;
+  border-top-color: var(--color-primary, #2563eb);
+  border-radius: 50%;
+  margin: 0 auto 1.25rem;
+  animation: spin 0.8s linear infinite;
+}
+
+.shimmerBar {
+  width: 100%;
+  max-width: 320px;
+  height: 6px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    90deg,
+    #e2e8f0 0%,
+    var(--color-primary, #2563eb) 50%,
+    #e2e8f0 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  margin: 1rem auto 0;
+}
+
+.statusText {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary, #0f172a);
+  margin-bottom: 0.25rem;
+}
+
+.statusSubtext {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #64748b);
+}
+
+/* ── Success State ── */
+.successCard {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.checkIconContainer {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.25rem;
+  animation: scaleCheck 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.successTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  margin-bottom: 0.375rem;
+}
+
+.successDetails {
+  font-size: 0.9375rem;
+  color: var(--text-secondary, #64748b);
+  margin-bottom: 1.5rem;
+}
+
+/* ── Error State ── */
+.errorCard {
+  padding: 1.5rem;
+  border-radius: 0.875rem;
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  color: #991b1b;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  animation: errorFadeIn 0.25s ease-out;
+}
+
+.errorIcon {
+  color: #dc2626;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.errorHeading {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  margin-bottom: 0.25rem;
+}
+
+.errorMessage {
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+/* ── Keyframe Animations ── */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes scaleCheck {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes errorFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Accessibility: Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .dropzone,
+  .dropIcon,
+  .previewCard,
+  .progressCard,
+  .successCard,
+  .checkIconContainer,
+  .errorCard {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+  .spinner {
+    animation: spin 2s linear infinite;
+  }
+  .shimmerBar {
+    animation: none;
+    background: var(--color-primary, #2563eb);
+  }
+}
+
+/* ── Responsive Viewports ── */
+@media (max-width: 640px) {
+  .container {
+    padding: 1rem 0.75rem 2rem;
+  }
+  .title {
+    font-size: 1.75rem;
+  }
+  .converterCard {
+    padding: 1.25rem;
+  }
+  .selectorRow {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+  .selectorGroup {
+    width: 100%;
+  }
+  .arrowDivider {
+    margin-top: 0;
+    transform: rotate(90deg);
+  }
+  .actionsRow {
+    flex-direction: column;
+    width: 100%;
+  }
+  .actionsRow button {
+    width: 100%;
+  }
+}

@@ -26,18 +26,17 @@ export default function ImagesToPdfPage() {
       const output = await imagesToPdf(files.map((f) => f.file));
       setResult({ data: output.data, size: output.data.byteLength });
 
-      if (user) {
-        try {
-          await saveProcessedFile({
-            userId: user.id,
-            data: output.data,
-            filename: 'images.pdf',
-            operation: 'images_to_pdf',
-            mimeType: 'application/pdf',
-          });
-        } catch (saveErr) {
-          console.warn('Could not save to history:', saveErr);
-        }
+      const activeUserId = user?.id || 'guest';
+      try {
+        await saveProcessedFile({
+          userId: activeUserId,
+          data: output.data,
+          filename: 'images.pdf',
+          operation: 'images_to_pdf',
+          mimeType: 'application/pdf',
+        });
+      } catch (saveErr) {
+        console.error('Could not save to history:', saveErr);
       }
 
       setState('success');
@@ -99,7 +98,7 @@ export default function ImagesToPdfPage() {
                 filename="images.pdf"
                 fileSize={result.size}
                 operation="Images → PDF"
-                savedToHistory={Boolean(user)}
+                savedToHistory={true}
                 onDownload={() => downloadBlob(result.data, 'images.pdf')}
                 onReset={handleReset}
                 downloadLabel="Download PDF"

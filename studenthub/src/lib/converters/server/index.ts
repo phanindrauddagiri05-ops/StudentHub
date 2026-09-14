@@ -17,12 +17,16 @@ import { convertXlsxToPdf } from './xlsx-to-pdf';
 import { convertCsvToPdf } from './csv-to-pdf';
 import { convertCsvToTxt } from './csv-to-txt';
 import { convertOfficeToPdf } from './office-to-pdf';
+import { convertImage } from './image-converter';
+import { isImageFormat } from '../registry';
+import { ImageConversionOptions } from '../types';
 
 export interface ExecuteConversionParams {
   sourceFormat: DocumentFormat;
   targetFormat: DocumentFormat;
   inputBuffer: Buffer;
   sourceFilename: string;
+  options?: ImageConversionOptions;
 }
 
 export interface ExecuteConversionResult {
@@ -36,6 +40,7 @@ export async function executeServerConversion({
   targetFormat,
   inputBuffer,
   sourceFilename,
+  options,
 }: ExecuteConversionParams): Promise<ExecuteConversionResult> {
   const definition = getConversion(sourceFormat, targetFormat);
 
@@ -48,6 +53,26 @@ export async function executeServerConversion({
       definition.comingSoonReason ||
         `Conversion from ${sourceFormat.toUpperCase()} to ${targetFormat.toUpperCase()} is coming soon.`
     );
+  }
+
+  // Preserve original base filename: report.pdf -> report.docx
+  const baseName = sourceFilename.replace(/\.[^/.]+$/, '') || 'converted_document';
+  const cleanBaseName = baseName.replace(/[^a-zA-Z0-9_-]/g, '_');
+
+  // Handle Phase 4 Image Conversions
+  if (isImageFormat(sourceFormat) && isImageFormat(targetFormat)) {
+    const imgResult = await convertImage({
+      sourceFormat,
+      targetFormat,
+      inputBuffer,
+      options,
+    });
+
+    return {
+      outputBuffer: imgResult.outputBuffer,
+      outputFilename: `${cleanBaseName}${imgResult.outputExtension}`,
+      outputMimeType: imgResult.outputMimeType,
+    };
   }
 
   let outputBuffer: Buffer;
@@ -159,9 +184,6 @@ export async function executeServerConversion({
       throw new Error(`Unsupported conversion pair: ${pairKey}`);
   }
 
-  // Preserve original base filename: report.pdf -> report.docx
-  const baseName = sourceFilename.replace(/\.[^/.]+$/, '') || 'converted_document';
-  const cleanBaseName = baseName.replace(/[^a-zA-Z0-9_-]/g, '_');
   const outputFilename = `${cleanBaseName}.${targetFormat}`;
 
   return {

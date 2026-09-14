@@ -62,7 +62,7 @@ export interface DocumentConversionRecord {
   created_at: string;
 }
 
-export type HistoryToolType = 'pdf' | 'document_converter';
+export type HistoryToolType = 'pdf' | 'document_converter' | 'image_converter';
 
 export interface UnifiedHistoryItem {
   id: string;
@@ -86,6 +86,7 @@ export interface UnifiedHistoryItem {
 export interface DashboardStats {
   pdfFilesCount: number;
   documentsConvertedCount: number;
+  imagesConvertedCount?: number;
   resumesCount?: number;
   activitiesCount: number;
   availableToolsCount: number;

@@ -18,6 +18,18 @@ export const TOOLS: Tool[] = [
     color: '#0284c7',
   },
   {
+    id: 'image-converters',
+    name: 'Image Converters',
+    slug: 'image-converters',
+    description: 'Convert images across JPG, PNG, WebP, HEIC, GIF, BMP, TIFF, and SVG quickly.',
+    icon: '🖼️',
+    category: 'documents',
+    categories: ['documents'],
+    status: 'available',
+    path: '/tools/image-converters',
+    color: '#8b5cf6',
+  },
+  {
     id: 'pdf',
     name: 'PDF Tools',
     slug: 'pdf',

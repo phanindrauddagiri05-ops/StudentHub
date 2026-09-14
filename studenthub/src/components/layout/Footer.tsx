@@ -15,6 +15,7 @@ const FOOTER_LINKS: Record<
   ],
   Tools: [
     { label: 'Document Converters', href: '/tools/document-converters' },
+    { label: 'Image Converters', href: '/tools/image-converters' },
     { label: 'PDF Tools', href: '/tools/pdf' },
     { label: 'Resume Generator', href: '#', disabled: true, tag: 'Soon' },
     { label: 'Notes', href: '#', disabled: true, tag: 'Soon' },

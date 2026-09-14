@@ -68,18 +68,17 @@ export default function ReorderPdfPage() {
       const output = await reorderPages(files[0].file, order);
       setResult({ data: output.data, size: output.data.byteLength });
 
-      if (user) {
-        try {
-          await saveProcessedFile({
-            userId: user.id,
-            data: output.data,
-            filename: 'reordered.pdf',
-            operation: 'reorder',
-            mimeType: 'application/pdf',
-          });
-        } catch (saveErr) {
-          console.warn('Could not save to history:', saveErr);
-        }
+      const activeUserId = user?.id || 'guest';
+      try {
+        await saveProcessedFile({
+          userId: activeUserId,
+          data: output.data,
+          filename: 'reordered.pdf',
+          operation: 'reorder',
+          mimeType: 'application/pdf',
+        });
+      } catch (saveErr) {
+        console.error('Could not save to history:', saveErr);
       }
 
       setState('success');
@@ -175,7 +174,7 @@ export default function ReorderPdfPage() {
                 filename="reordered.pdf"
                 fileSize={result.size}
                 operation="Reorder"
-                savedToHistory={Boolean(user)}
+                savedToHistory={true}
                 onDownload={() => downloadBlob(result.data, 'reordered.pdf')}
                 onReset={handleReset}
                 downloadLabel="Download Reordered PDF"

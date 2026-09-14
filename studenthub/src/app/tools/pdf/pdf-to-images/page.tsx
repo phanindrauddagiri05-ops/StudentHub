@@ -26,25 +26,24 @@ export default function PdfToImagesPage() {
       const output = await pdfToImages(files[0].file, undefined, 1.5);
       setImages(output.dataUrls);
 
-      if (user) {
-        try {
-          const JSZip = (await import('jszip')).default;
-          const zip = new JSZip();
-          output.dataUrls.forEach((url, i) => {
-            const base64 = url.split(',')[1];
-            zip.file(`page-${i + 1}.png`, base64, { base64: true });
-          });
-          const zipBlob = await zip.generateAsync({ type: 'blob' });
-          await saveProcessedFile({
-            userId: user.id,
-            data: zipBlob,
-            filename: 'extracted-images.zip',
-            operation: 'pdf_to_images',
-            mimeType: 'application/zip',
-          });
-        } catch (saveErr) {
-          console.warn('Could not save to history:', saveErr);
-        }
+      const activeUserId = user?.id || 'guest';
+      try {
+        const JSZip = (await import('jszip')).default;
+        const zip = new JSZip();
+        output.dataUrls.forEach((url, i) => {
+          const base64 = url.split(',')[1];
+          zip.file(`page-${i + 1}.png`, base64, { base64: true });
+        });
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        await saveProcessedFile({
+          userId: activeUserId,
+          data: zipBlob,
+          filename: 'extracted-images.zip',
+          operation: 'pdf_to_images',
+          mimeType: 'application/zip',
+        });
+      } catch (saveErr) {
+        console.error('Could not save to history:', saveErr);
       }
 
       setState('success');

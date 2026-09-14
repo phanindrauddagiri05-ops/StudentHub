@@ -48,18 +48,17 @@ export default function SplitPdfPage() {
       const outFilename = output.filename || 'extracted.pdf';
       setResult({ data: output.data, size: output.data.byteLength, filename: outFilename });
 
-      if (user) {
-        try {
-          await saveProcessedFile({
-            userId: user.id,
-            data: output.data,
-            filename: outFilename,
-            operation: 'split',
-            mimeType: outFilename.endsWith('.zip') ? 'application/zip' : 'application/pdf',
-          });
-        } catch (saveErr) {
-          console.warn('Could not save to history:', saveErr);
-        }
+      const activeUserId = user?.id || 'guest';
+      try {
+        await saveProcessedFile({
+          userId: activeUserId,
+          data: output.data,
+          filename: outFilename,
+          operation: 'split',
+          mimeType: outFilename.endsWith('.zip') ? 'application/zip' : 'application/pdf',
+        });
+      } catch (saveErr) {
+        console.error('Could not save to history:', saveErr);
       }
 
       setState('success');
@@ -148,7 +147,7 @@ export default function SplitPdfPage() {
                 filename={result.filename}
                 fileSize={result.size}
                 operation="Split"
-                savedToHistory={Boolean(user)}
+                savedToHistory={true}
                 onDownload={() => downloadBlob(result.data, result.filename)}
                 onReset={handleReset}
                 downloadLabel={`Download ${result.filename.endsWith('.zip') ? 'ZIP' : 'PDF'}`}
