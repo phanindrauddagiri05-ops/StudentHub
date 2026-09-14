@@ -20,6 +20,8 @@ import Button from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
 import { formatFileSize } from '@/lib/pdf';
 import { savePdfSummaryRecord } from '@/lib/storage/file-service';
+import { FEATURE_FLAGS } from '@/lib/config/features';
+import { PdfSummaryComingSoon } from '@/components/tools/pdf-summary/PdfSummaryComingSoon';
 import styles from './summary.module.css';
 
 type ProcessStep = 'idle' | 'extracting' | 'analyzing' | 'generating' | 'completed' | 'error';
@@ -43,6 +45,10 @@ interface SummaryResultPayload {
 }
 
 export default function PdfSummaryPage() {
+  if (!FEATURE_FLAGS.PDF_SUMMARY_AI) {
+    return <PdfSummaryComingSoon />;
+  }
+
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 

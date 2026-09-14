@@ -16,8 +16,8 @@ export const FEATURE_FLAGS = {
   // Phase 4: Image Converters (COMPLETED)
   IMAGE_CONVERTERS: true,
 
-  // Phase 5: PDF Summary + AI (CURRENT PHASE)
-  PDF_SUMMARY_AI: true,
+  // Phase 5: PDF Summary + AI (TEMPORARILY LOCKED UNTIL FUTURE UPDATE)
+  PDF_SUMMARY_AI: false,
 
   // Phase 6: Mind Maps + Questions (LOCKED)
   MIND_MAPS: false,
@@ -34,6 +34,7 @@ export const FEATURE_FLAGS = {
   // Phase 9: Notes + Search (LOCKED)
   NOTES: false,
   NOTES_SEARCH: false,
+  NOTES_SUMMARY: false,
 
   // Phase 10: Study Search (LOCKED)
   STUDY_SEARCH: false,

@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { ArrowLeft, Clock } from 'lucide-react';
 import { TOOLS } from '@/lib/tools';
 import Button from '@/components/ui/Button';
 import { redirect } from 'next/navigation';
+import { NotesSummaryComingSoon } from '@/components/tools/notes/NotesSummaryComingSoon';
+import { PdfSummaryComingSoon } from '@/components/tools/pdf-summary/PdfSummaryComingSoon';
+import { FEATURE_FLAGS } from '@/lib/config/features';
 import styles from './page.module.css';
 
 export function generateMetadata({ params }: { params: { tool: string[] } }): Metadata {
@@ -18,8 +20,16 @@ export function generateMetadata({ params }: { params: { tool: string[] } }): Me
 export default function ComingSoonPage({ params }: { params: { tool: string[] } }) {
   const slug = params.tool?.[0] ?? '';
   if (slug === 'summary' || slug === 'pdf-summary') {
+    if (!FEATURE_FLAGS.PDF_SUMMARY_AI) {
+      return <PdfSummaryComingSoon />;
+    }
     redirect('/tools/pdf-summary');
   }
+
+  if (slug === 'notes-summary' || slug === 'notes') {
+    return <NotesSummaryComingSoon />;
+  }
+
   const tool = TOOLS.find((t) => t.slug === slug || t.path.endsWith(slug));
 
   return (

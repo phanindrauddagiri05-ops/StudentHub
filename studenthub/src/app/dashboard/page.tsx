@@ -127,9 +127,9 @@ export default function DashboardPage() {
       actionText: 'Coming Soon',
     },
     {
-      id: 'notes-organizer',
-      name: 'Smart Notes',
-      desc: 'Organize lecture notes, extract key definitions, and generate study flashcards.',
+      id: 'notes-summary',
+      name: 'Notes Summary',
+      desc: 'Summarize your lecture notes and study materials with AI.',
       emoji: '📝',
       status: 'coming-soon',
       href: '#',
@@ -140,9 +140,9 @@ export default function DashboardPage() {
       name: 'PDF Summary',
       desc: 'Upload any academic PDF and get an AI-powered summary with key points and takeaways.',
       emoji: '✨',
-      status: 'available',
-      href: '/tools/pdf-summary',
-      actionText: 'Open Tool',
+      status: FEATURE_FLAGS.PDF_SUMMARY_AI ? 'available' : 'coming-soon',
+      href: FEATURE_FLAGS.PDF_SUMMARY_AI ? '/tools/pdf-summary' : '#',
+      actionText: FEATURE_FLAGS.PDF_SUMMARY_AI ? 'Open Tool' : 'Coming Soon',
     },
     {
       id: 'mind-map',
@@ -235,17 +235,19 @@ export default function DashboardPage() {
 
         {/* Primary Quick Action Buttons */}
         <div className={styles.quickActionsRow}>
-          <Link
-            href="/tools/pdf-summary"
-            className={[styles.quickActionBtn, styles.quickActionPrimary].join(' ')}
-            id="quick-action-pdf-summary"
-          >
-            <Sparkles size={16} />
-            PDF Summary
-          </Link>
+          {FEATURE_FLAGS.PDF_SUMMARY_AI && (
+            <Link
+              href="/tools/pdf-summary"
+              className={[styles.quickActionBtn, styles.quickActionPrimary].join(' ')}
+              id="quick-action-pdf-summary"
+            >
+              <Sparkles size={16} />
+              PDF Summary
+            </Link>
+          )}
           <Link
             href="/tools/image-converters"
-            className={styles.quickActionBtn}
+            className={[styles.quickActionBtn, !FEATURE_FLAGS.PDF_SUMMARY_AI ? styles.quickActionPrimary : ''].join(' ')}
             id="quick-action-image-convert"
           >
             <ImageIcon size={16} color="#8b5cf6" />

@@ -54,12 +54,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return pathname.startsWith(href);
   };
 
+  const isPdfSummaryAvailable = TOOLS.find((t) => t.id === 'pdf-summary')?.status === 'available';
+
   const TOOL_CATEGORIES = [
     { label: 'All Tools', href: '/tools', icon: Layers, exact: true },
-    { label: 'PDF Summary', href: '/tools/pdf-summary', icon: Sparkles, active: true },
     { label: 'Doc Converters', href: '/tools/document-converters', icon: RefreshCw, active: true },
     { label: 'Image Converters', href: '/tools/image-converters', icon: ImageIcon, active: true },
     { label: 'PDF Tools', href: '/tools/pdf', icon: FileText, active: true },
+    {
+      label: 'PDF Summary',
+      href: isPdfSummaryAvailable ? '/tools/pdf-summary' : '/tools',
+      icon: Sparkles,
+      count: isPdfSummaryAvailable ? undefined : 'Soon',
+      active: isPdfSummaryAvailable,
+    },
     { label: 'Career', href: '/tools#career', icon: Briefcase, count: 'Soon' },
     { label: 'Study', href: '/tools#study', icon: BookOpen, count: 'Soon' },
     { label: 'Academic', href: '/tools#academic', icon: GraduationCap, count: 'Soon' },
@@ -125,6 +133,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       {cat.active && (
                         <span style={{ fontSize: '9px', fontWeight: 700, padding: '1px 5px', borderRadius: '4px', backgroundColor: '#eff6ff', color: '#2563eb' }}>
                           Ready
+                        </span>
+                      )}
+                      {cat.count && !cat.active && (
+                        <span style={{ fontSize: '9px', fontWeight: 700, padding: '1px 5px', borderRadius: '4px', backgroundColor: '#f1f5f9', color: '#94a3b8' }}>
+                          {cat.count}
                         </span>
                       )}
                     </Link>

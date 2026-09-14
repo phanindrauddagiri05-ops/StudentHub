@@ -13,10 +13,19 @@ async function runFullRegression() {
   console.log('\n--- 1. Roadmap & Tool Status Verification ---');
   const available = TOOLS.filter((t) => t.status === 'available');
   console.log(`Available Tools (${available.length}):`, available.map((t) => t.name).join(', '));
-  if (available.length !== 4) throw new Error('Expected 4 available tools');
+  if (available.length !== 3) throw new Error(`Expected 3 available tools, got ${available.length}`);
   if (FEATURE_FLAGS.RESUME_GENERATOR !== false) throw new Error('Resume generator must be locked');
-  if (FEATURE_FLAGS.PDF_SUMMARY_AI !== true) throw new Error('PDF Summary must be enabled');
-  console.log('✓ Roadmap status verified.');
+  if (FEATURE_FLAGS.NOTES_SUMMARY !== false) throw new Error('Notes Summary must be locked');
+  if (FEATURE_FLAGS.PDF_SUMMARY_AI !== false) throw new Error('PDF Summary must be locked');
+  const pdfSummaryTool = TOOLS.find((t) => t.id === 'pdf-summary');
+  if (!pdfSummaryTool || pdfSummaryTool.status !== 'coming-soon') {
+    throw new Error('PDF summary tool must be registered as coming-soon');
+  }
+  const notesSummaryTool = TOOLS.find((t) => t.id === 'notes-summary');
+  if (!notesSummaryTool || notesSummaryTool.status !== 'coming-soon') {
+    throw new Error('Notes summary tool must be registered as coming-soon');
+  }
+  console.log('✓ Roadmap status verified (PDF Summary locked, Notes Summary locked, Resume locked, 3 available tools).');
 
   // 2. Image Conversion: SVG -> PNG
   console.log('\n--- 2. Image Conversion Regression (SVG -> PNG) ---');
@@ -74,6 +83,32 @@ async function runFullRegression() {
   console.log('  Key points:', summary.keyPoints.length);
   console.log('  Important details:', summary.importantDetails.length);
   console.log('  Conclusions:', summary.conclusions.slice(0, 70) + '...');
+
+  // 6. Notes Summary Backend Logic Preservation Test
+  console.log('\n--- 6. Notes Summary Backend Logic Preservation ---');
+  const { summarizeNotes } = await import('../src/lib/ai/notes-summary');
+  const sampleNotes = 'Lecture 1: Intro to Neural Networks. Perceptrons form the basic building block. Multi-layer perceptrons use backpropagation for gradient descent optimization.';
+  const notesResult = await summarizeNotes({ notesText: sampleNotes, title: 'AI Lecture' });
+  if (!notesResult || !notesResult.overview || notesResult.keyPoints.length === 0) {
+    throw new Error('Notes summary backend logic returned empty result');
+  }
+  console.log('✓ Notes summary preserved backend logic executed successfully!');
+  console.log('  Notes Overview:', notesResult.overview.slice(0, 60) + '...');
+  console.log('  Notes Key Points count:', notesResult.keyPoints.length);
+
+  // 7. Verify API Lock Behavior (Uploads and Processing Blocked)
+  console.log('\n--- 7. PDF Summary API Lock Verification ---');
+  const { POST: postSummary } = await import('../src/app/api/summary/route');
+  const { NextRequest } = await import('next/server');
+  const mockReq = new NextRequest('http://localhost:3000/api/summary', { method: 'POST' });
+  const lockRes = await postSummary(mockReq);
+  console.log('Locked API Status Code:', lockRes.status);
+  const lockData = await lockRes.json();
+  console.log('Locked API Error Notice:', lockData.error);
+  if (lockRes.status !== 503 || !lockData.comingSoon) {
+    throw new Error(`Expected 503 with comingSoon: true, got ${lockRes.status}`);
+  }
+  console.log('✓ PDF Summary API lock correctly blocks processing with 503 Coming Soon notice.');
 
   console.log('\n=== ALL PHASES 1–5 REGRESSION TESTS PASSED! ===\n');
 }

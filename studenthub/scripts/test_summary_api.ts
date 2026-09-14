@@ -11,7 +11,7 @@ async function testApi() {
   page.drawText('StudentHub Research Report on Distributed Databases and Consensus Algorithms.\nKey findings demonstrate Paxos and Raft maintain consistency during network partitions.\nImportant details include quorum replication, leader election heartbeats, and write-ahead logs.\nIn conclusion, modern distributed architectures depend heavily on linearizable state machine replication.');
   const pdfBytes = await doc.save();
 
-  const file = new File([pdfBytes], 'Distributed_Databases.pdf', { type: 'application/pdf' });
+  const file = new File([Buffer.from(pdfBytes)], 'Distributed_Databases.pdf', { type: 'application/pdf' });
   const formData = new FormData();
   formData.append('file', file);
 
@@ -40,7 +40,7 @@ async function testApi() {
   blankDoc.addPage([400, 400]);
   const blankBytes = await blankDoc.save();
 
-  const blankFile = new File([blankBytes], 'Scanned_Receipt.pdf', { type: 'application/pdf' });
+  const blankFile = new File([Buffer.from(blankBytes)], 'Scanned_Receipt.pdf', { type: 'application/pdf' });
   const blankFormData = new FormData();
   blankFormData.append('file', blankFile);
 

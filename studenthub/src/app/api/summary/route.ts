@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { extractPdfText } from '@/lib/ai/pdf-text';
 import { generatePdfSummary } from '@/lib/ai/provider';
 import { getSupabaseClient } from '@/lib/supabase/client';
+import { FEATURE_FLAGS } from '@/lib/config/features';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -16,6 +17,16 @@ export const dynamic = 'force-dynamic';
 const MAX_PDF_SIZE_BYTES = 25 * 1024 * 1024; // 25MB limit
 
 export async function POST(req: NextRequest) {
+  if (!FEATURE_FLAGS.PDF_SUMMARY_AI) {
+    return NextResponse.json(
+      {
+        error: 'PDF Summary — Coming Soon. This feature is temporarily unavailable and will be enabled in a future update.',
+        comingSoon: true,
+      },
+      { status: 503 }
+    );
+  }
+
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
