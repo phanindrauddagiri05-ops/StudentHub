@@ -20,6 +20,8 @@ import {
   RefreshCw,
   Image as ImageIcon,
   Sparkles,
+  Brain,
+  HelpCircle,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { TOOLS } from '@/lib/tools';
@@ -58,6 +60,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const TOOL_CATEGORIES = [
     { label: 'All Tools', href: '/tools', icon: Layers, exact: true },
+    { label: 'Mind Maps', href: '/tools/mind-maps', icon: Brain, active: true },
+    { label: 'Questions', href: '/tools/questions', icon: HelpCircle, active: true },
     { label: 'Doc Converters', href: '/tools/document-converters', icon: RefreshCw, active: true },
     { label: 'Image Converters', href: '/tools/image-converters', icon: ImageIcon, active: true },
     { label: 'PDF Tools', href: '/tools/pdf', icon: FileText, active: true },

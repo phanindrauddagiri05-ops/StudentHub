@@ -62,7 +62,13 @@ export interface DocumentConversionRecord {
   created_at: string;
 }
 
-export type HistoryToolType = 'pdf' | 'document_converter' | 'image_converter' | 'pdf_summary';
+export type HistoryToolType =
+  | 'pdf'
+  | 'document_converter'
+  | 'image_converter'
+  | 'pdf_summary'
+  | 'mind_map'
+  | 'question_set';
 
 export interface PdfSummaryData {
   overview: string;
@@ -72,6 +78,51 @@ export interface PdfSummaryData {
   rawText?: string;
   pageCount?: number;
   wordCount?: number;
+}
+
+export interface MindMapNode {
+  id: string;
+  text: string;
+  x: number;
+  y: number;
+  color?: string;
+  parentId?: string;
+  notes?: string;
+}
+
+export interface MindMapEdge {
+  id: string;
+  source: string;
+  target: string;
+  label?: string;
+}
+
+export interface MindMapData {
+  title: string;
+  nodes: MindMapNode[];
+  edges: MindMapEdge[];
+}
+
+export type QuestionType = 'mcq' | 'short_answer' | 'true_false' | 'fill_blank' | 'mixed';
+export type QuestionDifficulty = 'easy' | 'medium' | 'hard';
+
+export interface QuestionItem {
+  id: string;
+  question: string;
+  type: QuestionType;
+  difficulty: QuestionDifficulty;
+  options?: string[]; // for mcq
+  correctAnswer: string;
+  explanation: string;
+}
+
+export interface QuestionSetData {
+  title: string;
+  sourceTextPreview?: string;
+  questions: QuestionItem[];
+  difficulty: QuestionDifficulty;
+  questionCount: number;
+  questionType: QuestionType;
 }
 
 export interface UnifiedHistoryItem {
@@ -92,6 +143,8 @@ export interface UnifiedHistoryItem {
   createdAt: string;
   downloadUrl?: string;
   summaryData?: PdfSummaryData;
+  mindMapData?: MindMapData;
+  questionSetData?: QuestionSetData;
 }
 
 export interface DashboardStats {
@@ -99,6 +152,8 @@ export interface DashboardStats {
   documentsConvertedCount: number;
   imagesConvertedCount?: number;
   pdfSummariesCount?: number;
+  mindMapsCount?: number;
+  questionsCount?: number;
   resumesCount?: number;
   activitiesCount: number;
   availableToolsCount: number;

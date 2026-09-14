@@ -16,6 +16,8 @@ import {
   RefreshCw,
   Bookmark,
   Image as ImageIcon,
+  Brain,
+  HelpCircle,
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
@@ -149,18 +151,18 @@ export default function DashboardPage() {
       name: 'Mind Map Generator',
       desc: 'Turn complex concepts, historical timelines, and syllabi into interactive visual diagrams.',
       emoji: '🧠',
-      status: 'coming-soon',
-      href: '#',
-      actionText: 'Coming Soon',
+      status: 'available',
+      href: '/tools/mind-maps',
+      actionText: 'Open Tool',
     },
     {
       id: 'question-preparation',
       name: 'Question Preparation',
       desc: 'Generate exam practice sets, multiple choice tests, and flashcards from study materials.',
       emoji: '❓',
-      status: 'coming-soon',
-      href: '#',
-      actionText: 'Coming Soon',
+      status: 'available',
+      href: '/tools/questions',
+      actionText: 'Open Tool',
     },
     {
       id: 'attendance-calculator',
@@ -207,8 +209,10 @@ export default function DashboardPage() {
       document_conversion: 'Document converted',
       image_conversion: 'Image converted',
       pdf_summary: 'PDF summarized',
+      mind_map: 'Mind map created',
+      question_set: 'Question set generated',
     };
-    if (action.startsWith('PDF summarized')) return action;
+    if (action.startsWith('PDF summarized') || action.startsWith('Mind Map') || action.startsWith('Question set')) return action;
     return map[action] || action.replace(/_/g, ' ');
   };
 
@@ -216,7 +220,9 @@ export default function DashboardPage() {
     (stats?.pdfFilesCount ?? 0) +
     (stats?.documentsConvertedCount ?? 0) +
     (stats?.imagesConvertedCount ?? 0) +
-    (stats?.pdfSummariesCount ?? 0);
+    (stats?.pdfSummariesCount ?? 0) +
+    (stats?.mindMapsCount ?? 0) +
+    (stats?.questionsCount ?? 0);
 
   return (
     <div className={styles.dashboard}>
@@ -235,19 +241,25 @@ export default function DashboardPage() {
 
         {/* Primary Quick Action Buttons */}
         <div className={styles.quickActionsRow}>
-          {FEATURE_FLAGS.PDF_SUMMARY_AI && (
-            <Link
-              href="/tools/pdf-summary"
-              className={[styles.quickActionBtn, styles.quickActionPrimary].join(' ')}
-              id="quick-action-pdf-summary"
-            >
-              <Sparkles size={16} />
-              PDF Summary
-            </Link>
-          )}
+          <Link
+            href="/tools/mind-maps"
+            className={[styles.quickActionBtn, styles.quickActionPrimary].join(' ')}
+            id="quick-action-mind-maps"
+          >
+            <Brain size={16} color="#db2777" />
+            Mind Maps
+          </Link>
+          <Link
+            href="/tools/questions"
+            className={styles.quickActionBtn}
+            id="quick-action-questions"
+          >
+            <HelpCircle size={16} color="#dc2626" />
+            Exam Prep
+          </Link>
           <Link
             href="/tools/image-converters"
-            className={[styles.quickActionBtn, !FEATURE_FLAGS.PDF_SUMMARY_AI ? styles.quickActionPrimary : ''].join(' ')}
+            className={styles.quickActionBtn}
             id="quick-action-image-convert"
           >
             <ImageIcon size={16} color="#8b5cf6" />
@@ -439,7 +451,11 @@ export default function DashboardPage() {
                 {activities.map((act) => (
                   <div key={act.id} className={styles.activityItem}>
                     <div className={styles.activityIconBox}>
-                      {act.resource_type === 'pdf_summary' || act.action.includes('summar') ? (
+                      {act.resource_type === 'mind_map' || act.action.includes('Mind Map') ? (
+                        <Brain size={16} color="#db2777" />
+                      ) : act.resource_type === 'question_set' || act.action.includes('Question') ? (
+                        <HelpCircle size={16} color="#dc2626" />
+                      ) : act.resource_type === 'pdf_summary' || act.action.includes('summar') ? (
                         <Sparkles size={16} color="#7c3aed" />
                       ) : act.action === 'image_conversion' ? (
                         <ImageIcon size={16} />

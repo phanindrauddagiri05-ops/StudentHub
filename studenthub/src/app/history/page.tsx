@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useTransition } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   FileText,
   Search,
@@ -16,6 +17,8 @@ import {
   XCircle,
   Image as ImageIcon,
   Sparkles,
+  Brain,
+  HelpCircle,
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,10 +31,12 @@ import { formatFileSize } from '@/lib/pdf';
 import type { UnifiedHistoryItem } from '@/types/database';
 import styles from './history.module.css';
 
-type HistoryFilter = 'all' | 'pdf' | 'document_converter' | 'image_converter' | 'pdf_summary';
+type HistoryFilter = 'all' | 'mind_map' | 'question_set' | 'pdf' | 'document_converter' | 'image_converter' | 'pdf_summary';
 
 const FILTER_PILLS: { label: string; value: HistoryFilter }[] = [
   { label: 'All', value: 'all' },
+  { label: 'Mind Maps', value: 'mind_map' },
+  { label: 'Question Sets', value: 'question_set' },
   { label: 'PDF', value: 'pdf' },
   { label: 'Document Conversions', value: 'document_converter' },
   { label: 'Image Conversions', value: 'image_converter' },
@@ -39,6 +44,7 @@ const FILTER_PILLS: { label: string; value: HistoryFilter }[] = [
 ];
 
 export default function HistoryPage() {
+  const router = useRouter();
   const { user } = useAuth();
   const [items, setItems] = useState<UnifiedHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -126,6 +132,27 @@ ${item.summaryData.conclusions}
         return;
       }
 
+      if (item.toolType === 'mind_map') {
+        const blob = new Blob([JSON.stringify(item.mindMapData || {}, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${item.sourceFilename}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        return;
+      }
+      if (item.toolType === 'question_set') {
+        const blob = new Blob([JSON.stringify(item.questionSetData || {}, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${item.sourceFilename}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        return;
+      }
+
       const url = await getUnifiedDownloadUrl(item);
       const a = document.createElement('a');
       a.href = url;
@@ -140,6 +167,14 @@ ${item.summaryData.conclusions}
   };
 
   const handleView = async (item: UnifiedHistoryItem) => {
+    if (item.toolType === 'mind_map') {
+      router.push(`/tools/mind-maps?id=${item.id}`);
+      return;
+    }
+    if (item.toolType === 'question_set') {
+      router.push(`/tools/questions?id=${item.id}`);
+      return;
+    }
     if (item.toolType === 'pdf_summary') {
       setSummaryToView(item);
       return;
@@ -401,7 +436,11 @@ ${item.summaryData.conclusions}
                       <td className={styles.td}>
                         <div className={styles.fileNameCol}>
                           <div className={styles.fileIconBox}>
-                            {item.toolType === 'image_converter' ? (
+                            {item.toolType === 'mind_map' ? (
+                              <Brain size={18} color="#db2777" />
+                            ) : item.toolType === 'question_set' ? (
+                              <HelpCircle size={18} color="#dc2626" />
+                            ) : item.toolType === 'image_converter' ? (
                               <ImageIcon size={18} color="#8b5cf6" />
                             ) : item.toolType === 'document_converter' ? (
                               <RefreshCw size={18} color="#0284c7" />
@@ -493,7 +532,11 @@ ${item.summaryData.conclusions}
                 <div key={item.id} className={styles.historyMobileCard}>
                   <div className={styles.mobileCardHeader}>
                     <div className={styles.fileIconBox} style={{ width: 32, height: 32 }}>
-                      {item.toolType === 'image_converter' ? (
+                      {item.toolType === 'mind_map' ? (
+                        <Brain size={16} color="#db2777" />
+                      ) : item.toolType === 'question_set' ? (
+                        <HelpCircle size={16} color="#dc2626" />
+                      ) : item.toolType === 'image_converter' ? (
                         <ImageIcon size={16} color="#8b5cf6" />
                       ) : item.toolType === 'document_converter' ? (
                         <RefreshCw size={16} color="#0284c7" />

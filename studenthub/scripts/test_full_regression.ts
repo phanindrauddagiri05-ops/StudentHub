@@ -13,7 +13,9 @@ async function runFullRegression() {
   console.log('\n--- 1. Roadmap & Tool Status Verification ---');
   const available = TOOLS.filter((t) => t.status === 'available');
   console.log(`Available Tools (${available.length}):`, available.map((t) => t.name).join(', '));
-  if (available.length !== 3) throw new Error(`Expected 3 available tools, got ${available.length}`);
+  if (available.length !== 5) throw new Error(`Expected 5 available tools, got ${available.length}`);
+  if (FEATURE_FLAGS.MIND_MAPS !== true) throw new Error('Mind Maps must be active in Phase 6');
+  if (FEATURE_FLAGS.QUESTIONS_GENERATOR !== true) throw new Error('Questions must be active in Phase 6');
   if (FEATURE_FLAGS.RESUME_GENERATOR !== false) throw new Error('Resume generator must be locked');
   if (FEATURE_FLAGS.NOTES_SUMMARY !== false) throw new Error('Notes Summary must be locked');
   if (FEATURE_FLAGS.PDF_SUMMARY_AI !== false) throw new Error('PDF Summary must be locked');
@@ -25,7 +27,7 @@ async function runFullRegression() {
   if (!notesSummaryTool || notesSummaryTool.status !== 'coming-soon') {
     throw new Error('Notes summary tool must be registered as coming-soon');
   }
-  console.log('✓ Roadmap status verified (PDF Summary locked, Notes Summary locked, Resume locked, 3 available tools).');
+  console.log('✓ Roadmap status verified (Mind Maps & Questions active, PDF Summary & Resume locked, 5 available tools).');
 
   // 2. Image Conversion: SVG -> PNG
   console.log('\n--- 2. Image Conversion Regression (SVG -> PNG) ---');

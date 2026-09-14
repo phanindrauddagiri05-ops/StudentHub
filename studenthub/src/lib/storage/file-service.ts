@@ -8,13 +8,42 @@ import type {
   UnifiedHistoryItem,
   HistoryToolType,
   DocumentConversionRecord,
+  MindMapData,
+  QuestionSetData,
 } from '@/types/database';
+import { TOOLS } from '@/lib/tools';
 
 const BUCKET_NAME = 'studenthub-files';
 const LOCAL_FILES_KEY = 'studenthub_local_files';
 const LOCAL_ACTIVITIES_KEY = 'studenthub_local_activities';
 const LOCAL_CONVERSIONS_KEY = 'studenthub_recent_conversions';
 const LOCAL_SUMMARIES_KEY = 'studenthub_pdf_summaries';
+const LOCAL_MINDMAPS_KEY = 'studenthub_mindmaps';
+const LOCAL_QUESTIONS_KEY = 'studenthub_question_sets';
+
+const memoryStore = new Map<string, string>();
+
+function getStorageItem(key: string): string | null {
+  if (typeof window !== 'undefined') {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      // fallback
+    }
+  }
+  return memoryStore.get(key) || null;
+}
+
+function setStorageItem(key: string, value: string): void {
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      // fallback
+    }
+  }
+  memoryStore.set(key, value);
+}
 
 // Simple IndexedDB helper for storing local file binaries if Supabase is offline
 const IDB_NAME = 'studenthub_storage';
@@ -362,23 +391,34 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
   }
 
   let pdfSummariesCount = 0;
+  let mindMapsCount = 0;
+  let questionsCount = 0;
   if (typeof window !== 'undefined') {
     try {
       const sums = JSON.parse(localStorage.getItem(LOCAL_SUMMARIES_KEY) || '[]');
       pdfSummariesCount = sums.filter((s: { userId?: string }) => s.userId === userId || !s.userId || userId === 'guest').length;
+      const maps = JSON.parse(localStorage.getItem(LOCAL_MINDMAPS_KEY) || '[]');
+      mindMapsCount = maps.filter((m: { userId?: string }) => m.userId === userId || !m.userId || userId === 'guest').length;
+      const qsets = JSON.parse(localStorage.getItem(LOCAL_QUESTIONS_KEY) || '[]');
+      questionsCount = qsets.filter((q: { userId?: string }) => q.userId === userId || !q.userId || userId === 'guest').length;
     } catch {
       // ignore
     }
   }
+
+  const availableToolsCount = TOOLS.filter((t) => t.status === 'available').length;
+  const comingSoonToolsCount = TOOLS.filter((t) => t.status === 'coming-soon').length;
 
   return {
     pdfFilesCount,
     documentsConvertedCount,
     imagesConvertedCount,
     pdfSummariesCount,
+    mindMapsCount,
+    questionsCount,
     activitiesCount,
-    availableToolsCount: 4, // PDF Tools, Document Converters, Image Converters, PDF Summary
-    comingSoonToolsCount: 5, // Notes, Attendance, Timetable, Study Search, Mind Map, Question Preparation
+    availableToolsCount,
+    comingSoonToolsCount,
   };
 }
 
@@ -393,7 +433,7 @@ export async function getUnifiedHistory({
 }: {
   userId: string;
   search?: string;
-  toolType?: 'all' | 'pdf' | 'document_converter' | 'image_converter' | 'pdf_summary';
+  toolType?: 'all' | 'pdf' | 'document_converter' | 'image_converter' | 'pdf_summary' | 'mind_map' | 'question_set';
   operation?: string;
 }): Promise<UnifiedHistoryItem[]> {
   const supabase = getSupabaseClient();
@@ -576,8 +616,58 @@ export async function getUnifiedHistory({
           }
         }
       }
+
+      // Include Mind Maps in unified list
+      if (toolType === 'all' || toolType === 'mind_map') {
+        const storedMaps = getStorageItem(LOCAL_MINDMAPS_KEY);
+        if (storedMaps) {
+          const mapList: any[] = JSON.parse(storedMaps);
+          for (const m of mapList.filter((x) => x.userId === userId || !x.userId || userId === 'guest')) {
+            items.push({
+              id: m.id,
+              userId: m.userId || userId,
+              toolType: 'mind_map',
+              sourceFilename: m.title || 'Mind Map',
+              outputFilename: `${m.title || 'mind-map'}.json`,
+              displayFilename: m.title || 'Mind Map',
+              operation: 'mind_map',
+              operationLabel: 'Mind Map',
+              fileSize: JSON.stringify(m.data || {}).length,
+              status: 'completed',
+              storagePath: '',
+              createdAt: m.createdAt || new Date().toISOString(),
+              mindMapData: m.data,
+            });
+          }
+        }
+      }
+
+      // Include Question Sets in unified list
+      if (toolType === 'all' || toolType === 'question_set') {
+        const storedQuestions = getStorageItem(LOCAL_QUESTIONS_KEY);
+        if (storedQuestions) {
+          const qList: any[] = JSON.parse(storedQuestions);
+          for (const q of qList.filter((x) => x.userId === userId || !x.userId || userId === 'guest')) {
+            items.push({
+              id: q.id,
+              userId: q.userId || userId,
+              toolType: 'question_set',
+              sourceFilename: q.title || 'Exam Preparation',
+              outputFilename: `${q.title || 'questions'}.json`,
+              displayFilename: q.title || 'Exam Questions',
+              operation: 'question_set',
+              operationLabel: `Questions (${q.data?.questions?.length || q.questionCount || 0} Qs)`,
+              fileSize: JSON.stringify(q.data || {}).length,
+              status: 'completed',
+              storagePath: '',
+              createdAt: q.createdAt || new Date().toISOString(),
+              questionSetData: q.data,
+            });
+          }
+        }
+      }
     } catch (e) {
-      console.error('Error fetching summaries for history:', e);
+      console.error('Error fetching summaries/mindmaps/questions for history:', e);
     }
   }
 
@@ -755,6 +845,26 @@ export async function deleteUnifiedHistoryItem(item: UnifiedHistoryItem): Promis
       } catch (err) {
         console.error('Error deleting local summary from cache:', err);
       }
+    } else if (item.toolType === 'mind_map') {
+      try {
+        const stored = localStorage.getItem(LOCAL_MINDMAPS_KEY);
+        if (stored) {
+          const list = JSON.parse(stored);
+          localStorage.setItem(LOCAL_MINDMAPS_KEY, JSON.stringify(list.filter((m: { id?: string }) => m.id !== item.id)));
+        }
+      } catch (err) {
+        console.error('Error deleting mind map record:', err);
+      }
+    } else if (item.toolType === 'question_set') {
+      try {
+        const stored = localStorage.getItem(LOCAL_QUESTIONS_KEY);
+        if (stored) {
+          const list = JSON.parse(stored);
+          localStorage.setItem(LOCAL_QUESTIONS_KEY, JSON.stringify(list.filter((q: { id?: string }) => q.id !== item.id)));
+        }
+      } catch (err) {
+        console.error('Error deleting question set record:', err);
+      }
     } else {
       try {
         const stored = localStorage.getItem(LOCAL_CONVERSIONS_KEY);
@@ -841,3 +951,169 @@ export async function savePdfSummaryRecord(params: SavePdfSummaryParams): Promis
     }
   }
 }
+
+// ------------------------------------------------------------
+// SAVE MIND MAP RECORD
+// ------------------------------------------------------------
+export interface SaveMindMapParams {
+  id: string;
+  userId: string;
+  title: string;
+  data: MindMapData;
+  createdAt?: string;
+}
+
+export async function saveMindMapRecord(params: SaveMindMapParams): Promise<void> {
+  const createdAt = params.createdAt || new Date().toISOString();
+  const entry = {
+    id: params.id,
+    userId: params.userId,
+    title: params.title,
+    data: params.data,
+    createdAt,
+  };
+
+  try {
+    const stored = getStorageItem(LOCAL_MINDMAPS_KEY);
+    const list = stored ? JSON.parse(stored) : [];
+    const existingIdx = list.findIndex((m: { id?: string }) => m.id === params.id);
+    if (existingIdx >= 0) {
+      list[existingIdx] = entry;
+    } else {
+      list.unshift(entry);
+    }
+    setStorageItem(LOCAL_MINDMAPS_KEY, JSON.stringify(list.slice(0, 100)));
+
+    // Log activity
+    const actStored = getStorageItem(LOCAL_ACTIVITIES_KEY);
+    const acts = actStored ? JSON.parse(actStored) : [];
+    acts.unshift({
+      id: `act_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      user_id: params.userId,
+      action: `Mind Map created — ${params.title}`,
+      resource_type: 'mind_map',
+      metadata: { title: params.title },
+      created_at: createdAt,
+    });
+    setStorageItem(LOCAL_ACTIVITIES_KEY, JSON.stringify(acts.slice(0, 100)));
+  } catch (err) {
+    console.warn('Could not save mind map locally:', err);
+  }
+
+  const supabase = getSupabaseClient();
+  if (supabase && params.userId && params.userId !== 'guest') {
+    try {
+      await supabase.from('files').insert({
+        id: params.id,
+        user_id: params.userId,
+        original_name: `${params.title}.json`,
+        storage_path: `mindmaps/${params.userId}/${params.id}.json`,
+        mime_type: 'application/json',
+        file_size: JSON.stringify(params.data).length,
+        operation: 'compress' as any,
+        status: 'completed',
+        created_at: createdAt,
+      });
+    } catch {
+      // ignore
+    }
+  }
+}
+
+export async function getMindMapRecord(id: string): Promise<MindMapData | null> {
+  try {
+    const stored = getStorageItem(LOCAL_MINDMAPS_KEY);
+    if (stored) {
+      const list = JSON.parse(stored);
+      const match = list.find((m: { id?: string }) => m.id === id);
+      if (match) return match.data;
+    }
+  } catch (err) {
+    console.warn('Could not read local mind map:', err);
+  }
+  return null;
+}
+
+// ------------------------------------------------------------
+// SAVE QUESTION SET RECORD
+// ------------------------------------------------------------
+export interface SaveQuestionSetParams {
+  id: string;
+  userId: string;
+  title: string;
+  data: QuestionSetData;
+  createdAt?: string;
+}
+
+export async function saveQuestionSetRecord(params: SaveQuestionSetParams): Promise<void> {
+  const createdAt = params.createdAt || new Date().toISOString();
+  const entry = {
+    id: params.id,
+    userId: params.userId,
+    title: params.title,
+    data: params.data,
+    questionCount: params.data.questions.length,
+    createdAt,
+  };
+
+  try {
+    const stored = getStorageItem(LOCAL_QUESTIONS_KEY);
+    const list = stored ? JSON.parse(stored) : [];
+    const existingIdx = list.findIndex((q: { id?: string }) => q.id === params.id);
+    if (existingIdx >= 0) {
+      list[existingIdx] = entry;
+    } else {
+      list.unshift(entry);
+    }
+    setStorageItem(LOCAL_QUESTIONS_KEY, JSON.stringify(list.slice(0, 100)));
+
+    // Log activity
+    const actStored = getStorageItem(LOCAL_ACTIVITIES_KEY);
+    const acts = actStored ? JSON.parse(actStored) : [];
+    acts.unshift({
+      id: `act_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      user_id: params.userId,
+      action: `Question set generated — ${params.title} (${params.data.questions.length} questions)`,
+      resource_type: 'question_set',
+      metadata: { title: params.title, count: params.data.questions.length },
+      created_at: createdAt,
+    });
+    setStorageItem(LOCAL_ACTIVITIES_KEY, JSON.stringify(acts.slice(0, 100)));
+  } catch (err) {
+    console.warn('Could not save question set locally:', err);
+  }
+
+  const supabase = getSupabaseClient();
+  if (supabase && params.userId && params.userId !== 'guest') {
+    try {
+      await supabase.from('files').insert({
+        id: params.id,
+        user_id: params.userId,
+        original_name: `${params.title}.json`,
+        storage_path: `questions/${params.userId}/${params.id}.json`,
+        mime_type: 'application/json',
+        file_size: JSON.stringify(params.data).length,
+        operation: 'compress' as any,
+        status: 'completed',
+        created_at: createdAt,
+      });
+    } catch {
+      // ignore
+    }
+  }
+}
+
+export async function getQuestionSetRecord(id: string): Promise<QuestionSetData | null> {
+  try {
+    const stored = getStorageItem(LOCAL_QUESTIONS_KEY);
+    if (stored) {
+      const list = JSON.parse(stored);
+      const match = list.find((q: { id?: string }) => q.id === id);
+      if (match) return match.data;
+    }
+  } catch (err) {
+    console.warn('Could not read local question set:', err);
+  }
+  return null;
+}
+

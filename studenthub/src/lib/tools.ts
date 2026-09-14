@@ -128,13 +128,13 @@ export const TOOLS: Tool[] = [
   {
     id: 'mindmap',
     name: 'Mind Map Generator',
-    slug: 'mindmap',
+    slug: 'mind-maps',
     description: 'Turn complex syllabus topics and study concepts into visual interactive mind maps.',
     icon: '🧠',
     category: 'study',
     categories: ['study'],
-    status: 'coming-soon',
-    path: '/tools/mindmap',
+    status: 'available',
+    path: '/tools/mind-maps',
     color: '#db2777',
   },
   {
@@ -145,7 +145,7 @@ export const TOOLS: Tool[] = [
     icon: '❓',
     category: 'study',
     categories: ['study'],
-    status: 'coming-soon',
+    status: 'available',
     path: '/tools/questions',
     color: '#dc2626',
   },
@@ -186,6 +186,7 @@ export const TOOL_CATEGORIES = [
 
 export function getToolBySlug(slug: string): Tool | undefined {
   if (slug === 'summary') return TOOLS.find((t) => t.id === 'pdf-summary');
+  if (slug === 'mindmap' || slug === 'mind-maps') return TOOLS.find((t) => t.id === 'mindmap');
   return TOOLS.find((t) => t.slug === slug);
 }
 

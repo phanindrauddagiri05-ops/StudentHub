@@ -14,6 +14,8 @@ const FOOTER_LINKS: Record<
     { label: 'Contact', href: '#' },
   ],
   Tools: [
+    { label: 'Mind Maps', href: '/tools/mind-maps' },
+    { label: 'Question Preparation', href: '/tools/questions' },
     { label: 'Document Converters', href: '/tools/document-converters' },
     { label: 'Image Converters', href: '/tools/image-converters' },
     { label: 'PDF Tools', href: '/tools/pdf' },

@@ -19,9 +19,9 @@ export const FEATURE_FLAGS = {
   // Phase 5: PDF Summary + AI (TEMPORARILY LOCKED UNTIL FUTURE UPDATE)
   PDF_SUMMARY_AI: false,
 
-  // Phase 6: Mind Maps + Questions (LOCKED)
-  MIND_MAPS: false,
-  QUESTIONS_GENERATOR: false,
+  // Phase 6: Mind Maps + Questions (PHASE 6 ACTIVE)
+  MIND_MAPS: true,
+  QUESTIONS_GENERATOR: true,
 
   // Phase 7: Timetable + Attendance (LOCKED)
   TIMETABLE: false,
