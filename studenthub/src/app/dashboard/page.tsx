@@ -138,11 +138,11 @@ export default function DashboardPage() {
     {
       id: 'pdf-summary',
       name: 'PDF Summary',
-      desc: 'Extract key takeaways and generate executive chapter summaries from textbooks.',
-      emoji: '📑',
-      status: 'coming-soon',
-      href: '#',
-      actionText: 'Coming Soon',
+      desc: 'Upload any academic PDF and get an AI-powered summary with key points and takeaways.',
+      emoji: '✨',
+      status: 'available',
+      href: '/tools/pdf-summary',
+      actionText: 'Open Tool',
     },
     {
       id: 'mind-map',
@@ -206,14 +206,17 @@ export default function DashboardPage() {
       resume_export: 'Resume exported as PDF',
       document_conversion: 'Document converted',
       image_conversion: 'Image converted',
+      pdf_summary: 'PDF summarized',
     };
+    if (action.startsWith('PDF summarized')) return action;
     return map[action] || action.replace(/_/g, ' ');
   };
 
   const totalSavedFiles =
     (stats?.pdfFilesCount ?? 0) +
     (stats?.documentsConvertedCount ?? 0) +
-    (stats?.imagesConvertedCount ?? 0);
+    (stats?.imagesConvertedCount ?? 0) +
+    (stats?.pdfSummariesCount ?? 0);
 
   return (
     <div className={styles.dashboard}>
@@ -233,11 +236,19 @@ export default function DashboardPage() {
         {/* Primary Quick Action Buttons */}
         <div className={styles.quickActionsRow}>
           <Link
-            href="/tools/image-converters"
+            href="/tools/pdf-summary"
             className={[styles.quickActionBtn, styles.quickActionPrimary].join(' ')}
+            id="quick-action-pdf-summary"
+          >
+            <Sparkles size={16} />
+            PDF Summary
+          </Link>
+          <Link
+            href="/tools/image-converters"
+            className={styles.quickActionBtn}
             id="quick-action-image-convert"
           >
-            <ImageIcon size={16} />
+            <ImageIcon size={16} color="#8b5cf6" />
             Convert Image
           </Link>
           <Link
@@ -251,10 +262,6 @@ export default function DashboardPage() {
           <Link href="/tools/pdf" className={styles.quickActionBtn}>
             <FileText size={16} color="#2563eb" />
             PDF Tools
-          </Link>
-          <Link href="/tools#study" className={styles.quickActionBtn}>
-            <Bookmark size={16} color="#7c3aed" />
-            Upload Notes
           </Link>
         </div>
       </section>
@@ -430,12 +437,14 @@ export default function DashboardPage() {
                 {activities.map((act) => (
                   <div key={act.id} className={styles.activityItem}>
                     <div className={styles.activityIconBox}>
-                      {act.action === 'image_conversion' ? (
+                      {act.resource_type === 'pdf_summary' || act.action.includes('summar') ? (
+                        <Sparkles size={16} color="#7c3aed" />
+                      ) : act.action === 'image_conversion' ? (
                         <ImageIcon size={16} />
                       ) : act.action === 'document_conversion' ? (
                         <RefreshCw size={16} />
                       ) : act.action.startsWith('resume') ? (
-                        <Sparkles size={16} />
+                        <Bookmark size={16} />
                       ) : (
                         <FileText size={16} />
                       )}

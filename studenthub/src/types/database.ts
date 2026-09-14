@@ -62,7 +62,17 @@ export interface DocumentConversionRecord {
   created_at: string;
 }
 
-export type HistoryToolType = 'pdf' | 'document_converter' | 'image_converter';
+export type HistoryToolType = 'pdf' | 'document_converter' | 'image_converter' | 'pdf_summary';
+
+export interface PdfSummaryData {
+  overview: string;
+  keyPoints: string[];
+  importantDetails: string[];
+  conclusions: string;
+  rawText?: string;
+  pageCount?: number;
+  wordCount?: number;
+}
 
 export interface UnifiedHistoryItem {
   id: string;
@@ -81,12 +91,14 @@ export interface UnifiedHistoryItem {
   storagePath: string;
   createdAt: string;
   downloadUrl?: string;
+  summaryData?: PdfSummaryData;
 }
 
 export interface DashboardStats {
   pdfFilesCount: number;
   documentsConvertedCount: number;
   imagesConvertedCount?: number;
+  pdfSummariesCount?: number;
   resumesCount?: number;
   activitiesCount: number;
   availableToolsCount: number;

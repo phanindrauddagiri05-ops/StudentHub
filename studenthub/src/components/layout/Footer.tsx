@@ -17,9 +17,9 @@ const FOOTER_LINKS: Record<
     { label: 'Document Converters', href: '/tools/document-converters' },
     { label: 'Image Converters', href: '/tools/image-converters' },
     { label: 'PDF Tools', href: '/tools/pdf' },
+    { label: 'PDF Summary', href: '/tools/pdf-summary' },
     { label: 'Resume Generator', href: '#', disabled: true, tag: 'Soon' },
     { label: 'Notes', href: '#', disabled: true, tag: 'Soon' },
-    { label: 'PDF Summary', href: '#', disabled: true, tag: 'Soon' },
     { label: 'Attendance', href: '#', disabled: true, tag: 'Soon' },
   ],
   Resources: [

@@ -14,6 +14,7 @@ const BUCKET_NAME = 'studenthub-files';
 const LOCAL_FILES_KEY = 'studenthub_local_files';
 const LOCAL_ACTIVITIES_KEY = 'studenthub_local_activities';
 const LOCAL_CONVERSIONS_KEY = 'studenthub_recent_conversions';
+const LOCAL_SUMMARIES_KEY = 'studenthub_pdf_summaries';
 
 // Simple IndexedDB helper for storing local file binaries if Supabase is offline
 const IDB_NAME = 'studenthub_storage';
@@ -345,6 +346,7 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
       const files: UserFile[] = JSON.parse(localStorage.getItem(LOCAL_FILES_KEY) || '[]');
       const acts: ActivityLog[] = JSON.parse(localStorage.getItem(LOCAL_ACTIVITIES_KEY) || '[]');
       const convs = JSON.parse(localStorage.getItem(LOCAL_CONVERSIONS_KEY) || '[]');
+      const sums = JSON.parse(localStorage.getItem(LOCAL_SUMMARIES_KEY) || '[]');
       pdfFilesCount = files.filter((f) => f.user_id === userId).length;
       for (const c of convs.filter((x: { user_id?: string }) => x.user_id === userId || !x.user_id)) {
         if (isImageFormat(c.source_format) || isImageFormat(c.target_format)) {
@@ -359,13 +361,24 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
     }
   }
 
+  let pdfSummariesCount = 0;
+  if (typeof window !== 'undefined') {
+    try {
+      const sums = JSON.parse(localStorage.getItem(LOCAL_SUMMARIES_KEY) || '[]');
+      pdfSummariesCount = sums.filter((s: { userId?: string }) => s.userId === userId || !s.userId || userId === 'guest').length;
+    } catch {
+      // ignore
+    }
+  }
+
   return {
     pdfFilesCount,
     documentsConvertedCount,
     imagesConvertedCount,
+    pdfSummariesCount,
     activitiesCount,
-    availableToolsCount: 3, // PDF Tools, Document Converters & Image Converters
-    comingSoonToolsCount: 6, // Notes, Attendance, Timetable, Study Search, Mind Map, Question Preparation
+    availableToolsCount: 4, // PDF Tools, Document Converters, Image Converters, PDF Summary
+    comingSoonToolsCount: 5, // Notes, Attendance, Timetable, Study Search, Mind Map, Question Preparation
   };
 }
 
@@ -380,7 +393,7 @@ export async function getUnifiedHistory({
 }: {
   userId: string;
   search?: string;
-  toolType?: 'all' | 'pdf' | 'document_converter' | 'image_converter';
+  toolType?: 'all' | 'pdf' | 'document_converter' | 'image_converter' | 'pdf_summary';
   operation?: string;
 }): Promise<UnifiedHistoryItem[]> {
   const supabase = getSupabaseClient();
@@ -536,6 +549,35 @@ export async function getUnifiedHistory({
       }
     } catch {
       // ignore
+    }
+
+    // Include PDF Summaries in local fallback and unified list
+    try {
+      if (toolType === 'all' || toolType === 'pdf_summary') {
+        const storedSummaries = typeof window !== 'undefined' ? localStorage.getItem(LOCAL_SUMMARIES_KEY) : null;
+        if (storedSummaries) {
+          const sumList: any[] = JSON.parse(storedSummaries);
+          for (const s of sumList.filter((x) => x.userId === userId || !x.userId || userId === 'guest')) {
+            items.push({
+              id: s.id,
+              userId: s.userId || userId,
+              toolType: 'pdf_summary',
+              sourceFilename: s.filename || 'document.pdf',
+              outputFilename: `${(s.filename || 'document').replace(/\.pdf$/i, '')}_summary.txt`,
+              displayFilename: s.filename || 'document.pdf',
+              operation: 'pdf_summary',
+              operationLabel: 'PDF Summary',
+              fileSize: s.fileSize || 0,
+              status: 'completed',
+              storagePath: '',
+              createdAt: s.createdAt || new Date().toISOString(),
+              summaryData: s.summary,
+            });
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Error fetching summaries for history:', e);
     }
   }
 
@@ -703,6 +745,16 @@ export async function deleteUnifiedHistoryItem(item: UnifiedHistoryItem): Promis
           localStorage.setItem(LOCAL_FILES_KEY, JSON.stringify(list.filter((f) => f.id !== item.id)));
         }
       } catch {}
+    } else if (item.toolType === 'pdf_summary') {
+      try {
+        const stored = localStorage.getItem(LOCAL_SUMMARIES_KEY);
+        if (stored) {
+          const list = JSON.parse(stored);
+          localStorage.setItem(LOCAL_SUMMARIES_KEY, JSON.stringify(list.filter((s: { id?: string }) => s.id !== item.id)));
+        }
+      } catch (err) {
+        console.error('Error deleting local summary from cache:', err);
+      }
     } else {
       try {
         const stored = localStorage.getItem(LOCAL_CONVERSIONS_KEY);
@@ -718,6 +770,74 @@ export async function deleteUnifiedHistoryItem(item: UnifiedHistoryItem): Promis
       } catch (err) {
         console.error('Error deleting from local conversion cache:', err);
       }
+    }
+  }
+}
+
+// ------------------------------------------------------------
+// SAVE PDF SUMMARY RECORD
+// ------------------------------------------------------------
+export interface SavePdfSummaryParams {
+  id: string;
+  userId: string;
+  filename: string;
+  fileSize: number;
+  pageCount: number;
+  wordCount: number;
+  summary: {
+    overview: string;
+    keyPoints: string[];
+    importantDetails: string[];
+    conclusions: string;
+  };
+  provider: string;
+  createdAt: string;
+}
+
+export async function savePdfSummaryRecord(params: SavePdfSummaryParams): Promise<void> {
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem(LOCAL_SUMMARIES_KEY);
+      const list = stored ? JSON.parse(stored) : [];
+      // avoid duplicates
+      if (!list.some((s: { id?: string }) => s.id === params.id)) {
+        list.unshift(params);
+        localStorage.setItem(LOCAL_SUMMARIES_KEY, JSON.stringify(list.slice(0, 100)));
+      }
+
+      // Log to local activities
+      const actStored = localStorage.getItem(LOCAL_ACTIVITIES_KEY);
+      const acts = actStored ? JSON.parse(actStored) : [];
+      acts.unshift({
+        id: `act_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        user_id: params.userId,
+        action: `PDF summarized — ${params.filename}`,
+        resource_type: 'pdf_summary',
+        metadata: { filename: params.filename },
+        created_at: params.createdAt,
+      });
+      localStorage.setItem(LOCAL_ACTIVITIES_KEY, JSON.stringify(acts.slice(0, 100)));
+    } catch (err) {
+      console.warn('Could not save summary record locally:', err);
+    }
+  }
+
+  const supabase = getSupabaseClient();
+  if (supabase && params.userId && params.userId !== 'guest') {
+    try {
+      await supabase.from('files').insert({
+        id: params.id,
+        user_id: params.userId,
+        original_name: params.filename,
+        storage_path: `summaries/${params.userId}/${params.id}.json`,
+        mime_type: 'application/json',
+        file_size: params.fileSize,
+        operation: 'compress' as any,
+        status: 'completed',
+        created_at: params.createdAt,
+      });
+    } catch {
+      // ignore
     }
   }
 }

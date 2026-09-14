@@ -15,6 +15,7 @@ import {
   Clock,
   XCircle,
   Image as ImageIcon,
+  Sparkles,
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
@@ -27,13 +28,14 @@ import { formatFileSize } from '@/lib/pdf';
 import type { UnifiedHistoryItem } from '@/types/database';
 import styles from './history.module.css';
 
-type HistoryFilter = 'all' | 'pdf' | 'document_converter' | 'image_converter';
+type HistoryFilter = 'all' | 'pdf' | 'document_converter' | 'image_converter' | 'pdf_summary';
 
 const FILTER_PILLS: { label: string; value: HistoryFilter }[] = [
   { label: 'All', value: 'all' },
   { label: 'PDF', value: 'pdf' },
   { label: 'Document Conversions', value: 'document_converter' },
   { label: 'Image Conversions', value: 'image_converter' },
+  { label: 'PDF Summary', value: 'pdf_summary' },
 ];
 
 export default function HistoryPage() {
@@ -43,6 +45,7 @@ export default function HistoryPage() {
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState<HistoryFilter>('all');
   const [itemToDelete, setItemToDelete] = useState<UnifiedHistoryItem | null>(null);
+  const [summaryToView, setSummaryToView] = useState<UnifiedHistoryItem | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [, startTransition] = useTransition();
 
@@ -87,6 +90,42 @@ export default function HistoryPage() {
 
   const handleDownload = async (item: UnifiedHistoryItem) => {
     try {
+      if (item.toolType === 'pdf_summary' && item.summaryData) {
+        const content = `# Summary: ${item.sourceFilename}
+*Generated via StudentHub AI Summary*
+
+---
+
+## 1. Overview
+${item.summaryData.overview}
+
+---
+
+## 2. Key Points
+${item.summaryData.keyPoints.map((pt, i) => `${i + 1}. ${pt}`).join('\n')}
+
+---
+
+## 3. Important Details
+${item.summaryData.importantDetails.map((dt) => `- ${dt}`).join('\n')}
+
+---
+
+## 4. Conclusions
+${item.summaryData.conclusions}
+`;
+        const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${item.sourceFilename.replace(/\.pdf$/i, '')}_summary.md`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        return;
+      }
+
       const url = await getUnifiedDownloadUrl(item);
       const a = document.createElement('a');
       a.href = url;
@@ -101,6 +140,10 @@ export default function HistoryPage() {
   };
 
   const handleView = async (item: UnifiedHistoryItem) => {
+    if (item.toolType === 'pdf_summary') {
+      setSummaryToView(item);
+      return;
+    }
     try {
       const url = await getUnifiedDownloadUrl(item);
       window.open(url, '_blank');
@@ -126,6 +169,9 @@ export default function HistoryPage() {
   };
 
   const getOperationBadgeClass = (item: UnifiedHistoryItem) => {
+    if (item.toolType === 'pdf_summary') {
+      return styles.opSummary;
+    }
     if (item.toolType === 'image_converter') {
       return styles.opImage;
     }
@@ -564,6 +610,101 @@ export default function HistoryPage() {
                 ) : (
                   'Delete Permanently'
                 )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── View Summary Modal ───────────────────────────────── */}
+      {summaryToView && (
+        <div className={styles.modalBackdrop} role="dialog" aria-modal="true" onClick={() => setSummaryToView(null)}>
+          <div
+            className={styles.modalCard}
+            style={{ maxWidth: '680px', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.modalHeader} style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <Sparkles size={22} style={{ color: '#7c3aed' }} />
+                <div>
+                  <h2 className={styles.modalTitle} style={{ fontSize: '1.125rem' }}>
+                    {summaryToView.sourceFilename}
+                  </h2>
+                  <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0 }}>
+                    Generated on {new Date(summaryToView.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSummaryToView(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: '1.125rem', padding: '4px' }}
+                aria-label="Close summary"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {summaryToView.summaryData ? (
+                <>
+                  <div>
+                    <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.25rem' }}>Overview</h3>
+                    <p style={{ fontSize: '0.875rem', lineHeight: '1.6', color: '#334155', whiteSpace: 'pre-line' }}>
+                      {summaryToView.summaryData.overview}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.25rem' }}>Key Points</h3>
+                    <ul style={{ paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                      {summaryToView.summaryData.keyPoints.map((pt, i) => (
+                        <li key={i} style={{ fontSize: '0.8125rem', color: '#334155', listStyleType: 'disc' }}>
+                          {pt}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.25rem' }}>Important Details</h3>
+                    <ul style={{ paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                      {summaryToView.summaryData.importantDetails.map((dt, i) => (
+                        <li key={i} style={{ fontSize: '0.8125rem', color: '#334155', listStyleType: 'circle' }}>
+                          {dt}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.25rem' }}>Conclusions</h3>
+                    <p style={{ fontSize: '0.875rem', lineHeight: '1.6', color: '#334155' }}>
+                      {summaryToView.summaryData.conclusions}
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <p style={{ color: '#64748b' }}>Summary text is not available for this record.</p>
+              )}
+            </div>
+
+            <div className={styles.modalFooter} style={{ justifyContent: 'space-between', borderTop: '1px solid var(--color-border)', paddingTop: '0.75rem' }}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => handleDownload(summaryToView)}
+              >
+                <Download size={14} style={{ marginRight: 6 }} />
+                Download Markdown
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setSummaryToView(null)}
+              >
+                Close
               </Button>
             </div>
           </div>

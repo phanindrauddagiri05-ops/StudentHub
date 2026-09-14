@@ -13,11 +13,11 @@ export const FEATURE_FLAGS = {
   // Phase 3: Document Converters (CURRENT PHASE)
   DOCUMENT_CONVERTERS: true,
 
-  // Phase 4: Image Converters (LOCKED)
-  IMAGE_CONVERTERS: false,
+  // Phase 4: Image Converters (COMPLETED)
+  IMAGE_CONVERTERS: true,
 
-  // Phase 5: PDF Summary + AI (LOCKED)
-  PDF_SUMMARY_AI: false,
+  // Phase 5: PDF Summary + AI (CURRENT PHASE)
+  PDF_SUMMARY_AI: true,
 
   // Phase 6: Mind Maps + Questions (LOCKED)
   MIND_MAPS: false,

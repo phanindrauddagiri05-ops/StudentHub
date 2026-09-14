@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowLeft, Clock } from 'lucide-react';
 import { TOOLS } from '@/lib/tools';
 import Button from '@/components/ui/Button';
+import { redirect } from 'next/navigation';
 import styles from './page.module.css';
 
 export function generateMetadata({ params }: { params: { tool: string[] } }): Metadata {
@@ -16,6 +17,9 @@ export function generateMetadata({ params }: { params: { tool: string[] } }): Me
 
 export default function ComingSoonPage({ params }: { params: { tool: string[] } }) {
   const slug = params.tool?.[0] ?? '';
+  if (slug === 'summary' || slug === 'pdf-summary') {
+    redirect('/tools/pdf-summary');
+  }
   const tool = TOOLS.find((t) => t.slug === slug || t.path.endsWith(slug));
 
   return (

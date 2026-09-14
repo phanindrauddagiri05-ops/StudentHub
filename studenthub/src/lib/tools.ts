@@ -102,15 +102,15 @@ export const TOOLS: Tool[] = [
     color: '#0891b2',
   },
   {
-    id: 'summary',
+    id: 'pdf-summary',
     name: 'PDF Summary',
-    slug: 'summary',
-    description: 'Turn long PDFs into concise summaries, key points, and chapter takeaways.',
+    slug: 'pdf-summary',
+    description: 'Turn long PDFs into concise summaries, key points, and chapter takeaways using AI.',
     icon: '✨',
     category: 'study',
     categories: ['study', 'documents'],
-    status: 'coming-soon',
-    path: '/tools/summary',
+    status: 'available',
+    path: '/tools/pdf-summary',
     color: '#7c3aed',
   },
   {
@@ -173,6 +173,7 @@ export const TOOL_CATEGORIES = [
 ] as const;
 
 export function getToolBySlug(slug: string): Tool | undefined {
+  if (slug === 'summary') return TOOLS.find((t) => t.id === 'pdf-summary');
   return TOOLS.find((t) => t.slug === slug);
 }
 

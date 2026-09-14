@@ -19,6 +19,7 @@ import {
   Layers,
   RefreshCw,
   Image as ImageIcon,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { TOOLS } from '@/lib/tools';
@@ -55,6 +56,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const TOOL_CATEGORIES = [
     { label: 'All Tools', href: '/tools', icon: Layers, exact: true },
+    { label: 'PDF Summary', href: '/tools/pdf-summary', icon: Sparkles, active: true },
     { label: 'Doc Converters', href: '/tools/document-converters', icon: RefreshCw, active: true },
     { label: 'Image Converters', href: '/tools/image-converters', icon: ImageIcon, active: true },
     { label: 'PDF Tools', href: '/tools/pdf', icon: FileText, active: true },
