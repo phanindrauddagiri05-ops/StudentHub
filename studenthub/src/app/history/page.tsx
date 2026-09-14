@@ -11,31 +11,36 @@ import {
   CheckCircle2,
   AlertTriangle,
   Loader2,
+  RefreshCw,
+  Clock,
+  XCircle,
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
-import { getUserFiles, deleteUserFile, getFileDownloadUrl } from '@/lib/storage/file-service';
+import {
+  getUnifiedHistory,
+  deleteUnifiedHistoryItem,
+  getUnifiedDownloadUrl,
+} from '@/lib/storage/file-service';
 import { formatFileSize } from '@/lib/pdf';
-import type { UserFile } from '@/types/database';
+import type { UnifiedHistoryItem } from '@/types/database';
 import styles from './history.module.css';
 
-const FILTER_PILLS = [
+type HistoryFilter = 'all' | 'pdf' | 'document_converter';
+
+const FILTER_PILLS: { label: string; value: HistoryFilter }[] = [
   { label: 'All', value: 'all' },
-  { label: 'Merge', value: 'merge' },
-  { label: 'Split', value: 'split' },
-  { label: 'Compress', value: 'compress' },
-  { label: 'PDF → Images', value: 'pdf_to_images' },
-  { label: 'Images → PDF', value: 'images_to_pdf' },
-  { label: 'Reorder', value: 'reorder' },
+  { label: 'PDF', value: 'pdf' },
+  { label: 'Document Conversions', value: 'document_converter' },
 ];
 
 export default function HistoryPage() {
   const { user } = useAuth();
-  const [files, setFiles] = useState<UserFile[]>([]);
+  const [items, setItems] = useState<UnifiedHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [fileToDelete, setFileToDelete] = useState<UserFile | null>(null);
+  const [activeFilter, setActiveFilter] = useState<HistoryFilter>('all');
+  const [itemToDelete, setItemToDelete] = useState<UnifiedHistoryItem | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [, startTransition] = useTransition();
 
@@ -43,15 +48,16 @@ export default function HistoryPage() {
     let mounted = true;
     if (!user) return;
 
-    getUserFiles({
+    setLoading(true);
+    getUnifiedHistory({
       userId: user.id,
       search,
-      operation: activeFilter,
+      toolType: activeFilter,
     })
       .then((data) => {
         if (mounted) {
           startTransition(() => {
-            setFiles(data);
+            setItems(data);
             setLoading(false);
           });
         }
@@ -66,57 +72,62 @@ export default function HistoryPage() {
     };
   }, [user, search, activeFilter]);
 
-  const loadFiles = () => {
+  const loadHistory = () => {
     if (!user) return;
-    getUserFiles({
+    getUnifiedHistory({
       userId: user.id,
       search,
-      operation: activeFilter,
+      toolType: activeFilter,
     }).then((data) => {
-      setFiles(data);
+      setItems(data);
     });
   };
 
-
-  const handleDownload = async (file: UserFile) => {
+  const handleDownload = async (item: UnifiedHistoryItem) => {
     try {
-      const url = await getFileDownloadUrl(file);
+      const url = await getUnifiedDownloadUrl(item);
       const a = document.createElement('a');
       a.href = url;
-      a.download = file.original_name;
+      a.download = item.outputFilename || item.displayFilename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
     } catch (err) {
+      console.error('Download error:', err);
       alert('Could not download file. Please try again.');
     }
   };
 
-  const handleView = async (file: UserFile) => {
+  const handleView = async (item: UnifiedHistoryItem) => {
     try {
-      const url = await getFileDownloadUrl(file);
+      const url = await getUnifiedDownloadUrl(item);
       window.open(url, '_blank');
     } catch (err) {
-      alert('Could not view file.');
+      console.error('View error:', err);
+      alert('Could not open preview for this document.');
     }
   };
 
   const handleDeleteConfirm = async () => {
-    if (!fileToDelete) return;
+    if (!itemToDelete) return;
     setDeleting(true);
     try {
-      await deleteUserFile(fileToDelete);
-      setFileToDelete(null);
-      await loadFiles();
+      await deleteUnifiedHistoryItem(itemToDelete);
+      setItemToDelete(null);
+      await loadHistory();
     } catch (err) {
-      alert('Failed to delete file.');
+      console.error('Delete error:', err);
+      alert('Failed to delete history record.');
     } finally {
       setDeleting(false);
     }
   };
 
-  const getOperationBadgeClass = (op: string) => {
-    switch (op) {
+  const getOperationBadgeClass = (item: UnifiedHistoryItem) => {
+    if (item.toolType === 'document_converter') {
+      return styles.opConvert;
+    }
+    switch (item.operation) {
       case 'merge':
         return styles.opMerge;
       case 'split':
@@ -130,23 +141,20 @@ export default function HistoryPage() {
     }
   };
 
-  const formatOperationLabel = (op: string) => {
-    switch (op) {
-      case 'pdf_to_images':
-        return 'PDF → Images';
-      case 'images_to_pdf':
-        return 'Images → PDF';
-      default:
-        return op.charAt(0).toUpperCase() + op.slice(1);
-    }
-  };
-
   return (
     <div className={styles.container}>
-      {/* ── Tabs for Document History vs Resume History ────────── */}
-      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
-        <Link
-          href="/history"
+      {/* ── Category Navigation Tabs ──────────────────────────── */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '0.75rem',
+          marginBottom: '1.5rem',
+          borderBottom: '1px solid var(--color-border)',
+          paddingBottom: '0.75rem',
+        }}
+      >
+        <button
+          type="button"
           style={{
             padding: '0.5rem 1rem',
             fontSize: '0.9375rem',
@@ -154,37 +162,66 @@ export default function HistoryPage() {
             borderRadius: '8px',
             backgroundColor: '#eff6ff',
             color: '#2563eb',
-            textDecoration: 'none',
+            border: 'none',
+            cursor: 'default',
           }}
+          id="tab-document-history"
         >
-          PDF Documents
-        </Link>
-        <Link
-          href="/history/resumes"
+          Document History
+        </button>
+        <button
+          type="button"
+          disabled
           style={{
             padding: '0.5rem 1rem',
             fontSize: '0.9375rem',
             fontWeight: 600,
             borderRadius: '8px',
-            color: '#64748b',
-            textDecoration: 'none',
+            color: '#94a3b8',
+            backgroundColor: 'transparent',
+            border: 'none',
+            cursor: 'not-allowed',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
           }}
+          title="Resume Generator and Resume History will be available in Phase 8"
+          id="tab-resume-history-disabled"
         >
           Resumes
-        </Link>
+          <span
+            style={{
+              fontSize: '10px',
+              padding: '1px 6px',
+              borderRadius: '999px',
+              background: '#f1f5f9',
+              color: '#64748b',
+              fontWeight: 700,
+            }}
+          >
+            Soon
+          </span>
+        </button>
       </div>
 
       {/* ── Header ───────────────────────────────────────────── */}
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>PDF History</h1>
+          <h1 className={styles.title}>Document History</h1>
           <p className={styles.subtitle}>
-            Manage and download your processed documents stored in your private workspace.
+            Manage your processed files and conversions stored in your private workspace.
           </p>
         </div>
-        <Button variant="primary" size="sm" href="/tools/pdf" id="history-new-tool">
-          Process New PDF
-        </Button>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <Button variant="secondary" size="sm" href="/tools/document-converters" id="history-convert-btn">
+            <RefreshCw size={14} style={{ marginRight: 6 }} />
+            Convert Document
+          </Button>
+          <Button variant="primary" size="sm" href="/tools/pdf" id="history-pdf-btn">
+            <FileText size={14} style={{ marginRight: 6 }} />
+            PDF Tools
+          </Button>
+        </div>
       </div>
 
       {/* ── Filters & Search ─────────────────────────────────── */}
@@ -194,9 +231,10 @@ export default function HistoryPage() {
           <input
             type="text"
             className={styles.searchInput}
-            placeholder="Search by filename..."
+            placeholder="Search by filename or format..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            id="history-search-input"
           />
         </div>
 
@@ -208,6 +246,7 @@ export default function HistoryPage() {
               onClick={() => setActiveFilter(pill.value)}
               role="tab"
               aria-selected={activeFilter === pill.value}
+              id={`filter-pill-${pill.value}`}
             >
               {pill.label}
             </button>
@@ -229,18 +268,49 @@ export default function HistoryPage() {
               </div>
             ))}
           </div>
-        ) : files.length === 0 ? (
+        ) : items.length === 0 ? (
           <div className={styles.emptyState}>
             <span className={styles.emptyIcon}>📂</span>
-            <h2 className={styles.emptyTitle}>No PDF activity yet</h2>
-            <p className={styles.emptySubtitle}>
-              Use PDF Tools to process your first document. Your files will be saved here automatically.
-            </p>
-            <div style={{ marginTop: 8 }}>
-              <Button variant="primary" href="/tools/pdf" id="empty-history-btn">
-                Open PDF Tools
-              </Button>
-            </div>
+            {activeFilter === 'document_converter' ? (
+              <>
+                <h2 className={styles.emptyTitle}>No document conversions yet</h2>
+                <p className={styles.emptySubtitle}>
+                  Your converted documents will appear here. Convert your Word, PowerPoint, or Excel files.
+                </p>
+                <div style={{ marginTop: 8 }}>
+                  <Button variant="primary" href="/tools/document-converters" id="empty-convert-btn">
+                    Convert a Document
+                  </Button>
+                </div>
+              </>
+            ) : activeFilter === 'pdf' ? (
+              <>
+                <h2 className={styles.emptyTitle}>No PDF activity yet</h2>
+                <p className={styles.emptySubtitle}>
+                  Use PDF Tools to process your first document. Your files will be saved here automatically.
+                </p>
+                <div style={{ marginTop: 8 }}>
+                  <Button variant="primary" href="/tools/pdf" id="empty-pdf-btn">
+                    Open PDF Tools
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h2 className={styles.emptyTitle}>No activity yet</h2>
+                <p className={styles.emptySubtitle}>
+                  Process a PDF or convert a document to see your history records here.
+                </p>
+                <div style={{ marginTop: 8, display: 'flex', gap: '0.75rem' }}>
+                  <Button variant="primary" href="/tools/document-converters" id="empty-start-convert-btn">
+                    Convert Document
+                  </Button>
+                  <Button variant="secondary" href="/tools/pdf" id="empty-start-pdf-btn">
+                    PDF Tools
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <div className={styles.tableWrapper}>
@@ -258,59 +328,84 @@ export default function HistoryPage() {
                 </tr>
               </thead>
               <tbody>
-                {files.map((file) => (
-                  <tr key={file.id} className={styles.row}>
+                {items.map((item) => (
+                  <tr key={item.id} className={styles.row}>
                     <td className={styles.td}>
                       <div className={styles.fileNameCol}>
                         <div className={styles.fileIconBox}>
-                          <FileText size={18} />
+                          {item.toolType === 'document_converter' ? (
+                            <RefreshCw size={18} color="#0284c7" />
+                          ) : (
+                            <FileText size={18} color="#2563eb" />
+                          )}
                         </div>
-                        <span className={styles.fileName} title={file.original_name}>
-                          {file.original_name}
-                        </span>
+                        <div>
+                          <span className={styles.fileName} title={item.sourceFilename}>
+                            {item.sourceFilename}
+                          </span>
+                          {item.toolType === 'document_converter' && item.outputFilename !== item.sourceFilename && (
+                            <div className={styles.fileSubName} title={`Output: ${item.outputFilename}`}>
+                              → {item.outputFilename}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className={styles.td}>
-                      <span className={[styles.operationBadge, getOperationBadgeClass(file.operation)].join(' ')}>
-                        {formatOperationLabel(file.operation)}
+                      <span className={[styles.operationBadge, getOperationBadgeClass(item)].join(' ')}>
+                        {item.operationLabel}
                       </span>
                     </td>
-                    <td className={styles.td}>{formatFileSize(file.file_size)}</td>
+                    <td className={styles.td}>{formatFileSize(item.fileSize)}</td>
                     <td className={styles.td}>
-                      {new Date(file.created_at).toLocaleDateString(undefined, {
+                      {new Date(item.createdAt).toLocaleDateString(undefined, {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric',
                       })}
                     </td>
                     <td className={styles.td}>
-                      <span className={styles.statusCompleted}>
-                        <CheckCircle2 size={14} /> Completed
-                      </span>
+                      {item.status === 'completed' ? (
+                        <span className={styles.statusCompleted}>
+                          <CheckCircle2 size={14} /> Completed
+                        </span>
+                      ) : item.status === 'failed' ? (
+                        <span className={styles.statusFailed}>
+                          <XCircle size={14} /> Failed
+                        </span>
+                      ) : (
+                        <span style={{ color: '#d97706', display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 'var(--text-xs)' }}>
+                          <Clock size={14} /> Processing
+                        </span>
+                      )}
                     </td>
                     <td className={styles.td}>
                       <div className={styles.actionsCol} style={{ justifyContent: 'flex-end' }}>
-                        <button
-                          className={styles.actionBtn}
-                          onClick={() => handleDownload(file)}
-                          title="Download"
-                          aria-label={`Download ${file.original_name}`}
-                        >
-                          <Download size={15} />
-                        </button>
-                        <button
-                          className={styles.actionBtn}
-                          onClick={() => handleView(file)}
-                          title="View"
-                          aria-label={`View ${file.original_name}`}
-                        >
-                          <ExternalLink size={15} />
-                        </button>
+                        {item.status === 'completed' && (
+                          <>
+                            <button
+                              className={styles.actionBtn}
+                              onClick={() => handleDownload(item)}
+                              title="Download file"
+                              aria-label={`Download ${item.outputFilename}`}
+                            >
+                              <Download size={15} />
+                            </button>
+                            <button
+                              className={styles.actionBtn}
+                              onClick={() => handleView(item)}
+                              title="Open in new tab"
+                              aria-label={`Open ${item.outputFilename}`}
+                            >
+                              <ExternalLink size={15} />
+                            </button>
+                          </>
+                        )}
                         <button
                           className={[styles.actionBtn, styles.deleteBtn].join(' ')}
-                          onClick={() => setFileToDelete(file)}
-                          title="Delete"
-                          aria-label={`Delete ${file.original_name}`}
+                          onClick={() => setItemToDelete(item)}
+                          title="Delete from history"
+                          aria-label={`Delete ${item.displayFilename}`}
                         >
                           <Trash2 size={15} />
                         </button>
@@ -324,22 +419,22 @@ export default function HistoryPage() {
         )}
       </div>
 
-      {/* ── Delete Confirmation Modal (Requirement 28) ───────── */}
-      {fileToDelete && (
+      {/* ── Delete Confirmation Modal ────────────────────────── */}
+      {itemToDelete && (
         <div className={styles.modalBackdrop} role="dialog" aria-modal="true">
           <div className={styles.modalCard}>
             <div className={styles.modalHeader}>
               <AlertTriangle size={24} />
-              <h2 className={styles.modalTitle}>Delete this file?</h2>
+              <h2 className={styles.modalTitle}>Delete this record?</h2>
             </div>
             <p className={styles.modalBody}>
-              This file (&ldquo;<strong>{fileToDelete.original_name}</strong>&rdquo;) will be permanently removed
-              from your StudentHub storage. This action cannot be undone.
+              This file (&ldquo;<strong>{itemToDelete.displayFilename}</strong>&rdquo;) will be permanently removed
+              from your StudentHub storage and history. This action cannot be undone.
             </p>
             <div className={styles.modalFooter}>
               <Button
                 variant="ghost"
-                onClick={() => setFileToDelete(null)}
+                onClick={() => setItemToDelete(null)}
                 disabled={deleting}
                 id="cancel-delete-btn"
               >

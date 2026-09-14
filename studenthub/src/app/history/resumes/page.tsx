@@ -22,9 +22,15 @@ import {
 } from '@/lib/resume/resume-service';
 import { ResumeRecord } from '@/lib/resume/types';
 import { CreateResumeModal } from '@/components/tools/resume/CreateResumeModal';
+import { ResumeComingSoon } from '@/components/tools/resume/ResumeComingSoon';
+import { FEATURE_FLAGS } from '@/lib/config/features';
 import styles from '../history.module.css';
 
 export default function ResumesHistoryPage() {
+  if (!FEATURE_FLAGS.RESUME_GENERATOR) {
+    return <ResumeComingSoon />;
+  }
+
   const [resumes, setResumes] = useState<ResumeRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');

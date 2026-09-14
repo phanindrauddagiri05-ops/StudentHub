@@ -218,6 +218,25 @@
   font-weight: 500;
 }
 
+.statusFailed {
+  color: #dc2626;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xs);
+  font-weight: 500;
+}
+
+.fileSubName {
+  font-size: 11px;
+  color: var(--color-gray-400);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 240px;
+}
+
 .actionsCol {
   display: flex;
   align-items: center;

@@ -22,8 +22,11 @@ import {
   Calendar,
   Briefcase,
   Layers,
+  RefreshCw,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { TOOLS } from '@/lib/tools';
+import Footer from './Footer';
 import styles from './DashboardLayout.module.css';
 
 interface DashboardLayoutProps {
@@ -35,6 +38,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
   const { user, profile, signOut } = useAuth();
   const [toolsOpen, setToolsOpen] = useState(true);
+
+  const readyCount = TOOLS.filter((t) => t.status === 'available').length;
 
   const handleLogout = async () => {
     await signOut();
@@ -53,6 +58,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     if (pathname === '/dashboard') return { title: 'Dashboard', crumb: 'Home' };
     if (pathname === '/tools') return { title: 'Tools Directory', crumb: 'Tools' };
     if (pathname === '/tools/pdf') return { title: 'PDF Tools', crumb: 'Tools / Documents / PDF Tools' };
+    if (pathname === '/tools/document-converters') return { title: 'Document Converters', crumb: 'Tools / Documents / Document Converters' };
     if (pathname === '/tools/resume') return { title: 'Resume Generator', crumb: 'Tools / Career / Resume' };
     if (pathname.startsWith('/tools/resume/')) return { title: 'Resume Editor', crumb: 'Tools / Resume / Builder' };
     if (pathname === '/history') return { title: 'Document History', crumb: 'History / Documents' };
@@ -71,8 +77,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const TOOL_CATEGORIES = [
     { label: 'All Tools', href: '/tools', icon: Layers, exact: true },
-    { label: 'Documents', href: '/tools#documents', icon: FolderTree, count: 'PDF & Resumes' },
-    { label: 'Career', href: '/tools/resume', icon: Briefcase, count: 'Resume Builder', active: true },
+    { label: 'Doc Converters', href: '/tools/document-converters', icon: RefreshCw, active: true },
+    { label: 'PDF Tools', href: '/tools/pdf', icon: FileText, active: true },
+    { label: 'Career', href: '/tools#career', icon: Briefcase, count: 'Soon' },
     { label: 'Study', href: '/tools#study', icon: BookOpen, count: 'Soon' },
     { label: 'Academic', href: '/tools#academic', icon: GraduationCap, count: 'Soon' },
     { label: 'Planning', href: '/tools#planning', icon: Calendar, count: 'Soon' },
@@ -115,7 +122,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <Wrench size={18} />
               </span>
               <span className={styles.navLabel}>Tools</span>
-              <span className={styles.badgeAvailable}>2 Ready</span>
+              <span className={styles.badgeAvailable}>{readyCount} Ready</span>
               <ChevronDown
                 size={14}
                 style={{
@@ -248,11 +255,35 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <Bell size={18} />
             </button>
 
-            {/* Quick Resume Generator button */}
-            <Link href="/tools/resume" className={styles.quickToolBtn}>
-              <Sparkles size={15} />
-              Resume Builder
-            </Link>
+            {/* Disabled Resume Generator button (Phase 8 Coming Soon) */}
+            <button
+              type="button"
+              className={styles.quickToolBtn}
+              style={{
+                background: '#f1f5f9',
+                color: '#94a3b8',
+                cursor: 'not-allowed',
+                border: 'none',
+              }}
+              title="Resume Builder will be available in Phase 8"
+              disabled
+              id="header-resume-disabled"
+            >
+              <Sparkles size={14} />
+              <span>Resume Builder</span>
+              <span
+                style={{
+                  fontSize: '9px',
+                  fontWeight: 700,
+                  padding: '1px 5px',
+                  borderRadius: '4px',
+                  backgroundColor: '#e2e8f0',
+                  color: '#64748b',
+                }}
+              >
+                Soon
+              </span>
+            </button>
 
             <Link href="/profile" className={styles.avatar} style={{ textDecoration: 'none' }} title={displayName}>
               {initial}
@@ -271,9 +302,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </span>
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Link href="/tools/resume" style={{ fontSize: '0.75rem', fontWeight: 600, color: '#2563eb', textDecoration: 'none', background: '#eff6ff', padding: '4px 8px', borderRadius: '6px' }}>
-              Resume
-            </Link>
+            <span
+              style={{
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: '#94a3b8',
+                background: '#f1f5f9',
+                padding: '4px 8px',
+                borderRadius: '6px',
+              }}
+            >
+              Resume (Soon)
+            </span>
             <Link href="/profile" className={styles.avatar} style={{ width: 30, height: 30, fontSize: 12 }}>
               {initial}
             </Link>
@@ -282,6 +322,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Content */}
         <main className={styles.contentArea}>{children}</main>
+
+        {/* Workspace Footer */}
+        <Footer />
 
         {/* Mobile Bottom Navigation */}
         <nav className={styles.mobileBottomNav} aria-label="Mobile Bottom Navigation">
@@ -300,11 +343,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <span>Tools</span>
           </Link>
           <Link
-            href="/tools/resume"
-            className={[styles.bottomNavItem, pathname.startsWith('/tools/resume') ? styles.bottomNavActive : ''].join(' ')}
+            href="/tools/document-converters"
+            className={[
+              styles.bottomNavItem,
+              pathname.startsWith('/tools/document-converters') ? styles.bottomNavActive : '',
+            ].join(' ')}
           >
-            <FileText size={20} />
-            <span>Resume</span>
+            <RefreshCw size={20} />
+            <span>Convert</span>
           </Link>
           <Link
             href="/history"

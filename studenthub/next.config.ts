@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ['pdf-parse', 'pdfjs-dist'],
   // Turbopack config (Next.js 16 default)
   turbopack: {
     resolveAlias: {

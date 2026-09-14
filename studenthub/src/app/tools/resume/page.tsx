@@ -11,11 +11,17 @@ import {
   exportAndSaveResumePdf,
 } from '@/lib/resume/resume-service';
 import { CreateResumeModal } from '@/components/tools/resume/CreateResumeModal';
+import { ResumeComingSoon } from '@/components/tools/resume/ResumeComingSoon';
+import { FEATURE_FLAGS } from '@/lib/config/features';
 import { AdSlot } from '@/components/ads/AdSlot';
 import styles from './resume-list.module.css';
 
 export default function ResumeHubPage() {
   const router = useRouter();
+
+  if (!FEATURE_FLAGS.RESUME_GENERATOR) {
+    return <ResumeComingSoon />;
+  }
 
   const [resumes, setResumes] = useState<ResumeRecord[]>([]);
   const [loading, setLoading] = useState(true);

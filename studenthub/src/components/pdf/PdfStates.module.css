@@ -211,3 +211,19 @@
   text-align: center;
   font-style: italic;
 }
+
+/* ── Accessibility: Reduced Motion ────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .spinIcon {
+    animation: none !important;
+  }
+  .successIcon,
+  .fileCard,
+  .processingState,
+  .successState,
+  .errorState {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}

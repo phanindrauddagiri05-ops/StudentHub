@@ -198,3 +198,40 @@ CREATE POLICY "Users can delete own resumes"
   ON public.resumes FOR DELETE 
   USING (auth.uid() = user_id);
 
+-- ============================================================
+-- 7. DOCUMENT CONVERSIONS TABLE (Phase 3)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.document_conversions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  source_filename TEXT NOT NULL,
+  source_format TEXT NOT NULL,
+  target_format TEXT NOT NULL,
+  source_file_size BIGINT NOT NULL DEFAULT 0,
+  output_filename TEXT NOT NULL,
+  output_file_size BIGINT NOT NULL DEFAULT 0,
+  storage_path TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'completed', -- 'processing', 'completed', 'failed'
+  error_message TEXT,
+  created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- Index for fast user queries ordered by date
+CREATE INDEX IF NOT EXISTS idx_doc_conversions_user_created ON public.document_conversions(user_id, created_at DESC);
+
+-- Enable RLS for document_conversions
+ALTER TABLE public.document_conversions ENABLE ROW LEVEL SECURITY;
+
+-- Document Conversions Policies: strict user isolation
+CREATE POLICY "Users can view own conversions" 
+  ON public.document_conversions FOR SELECT 
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own conversions" 
+  ON public.document_conversions FOR INSERT 
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own conversions" 
+  ON public.document_conversions FOR DELETE 
+  USING (auth.uid() = user_id);
+

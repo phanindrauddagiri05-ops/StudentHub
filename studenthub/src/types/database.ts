@@ -47,9 +47,46 @@ export interface ActivityLog {
   created_at: string;
 }
 
+export interface DocumentConversionRecord {
+  id: string;
+  user_id: string;
+  source_filename: string;
+  source_format: string;
+  target_format: string;
+  source_file_size: number;
+  output_filename: string;
+  output_file_size: number;
+  storage_path: string;
+  status: 'processing' | 'completed' | 'failed';
+  error_message?: string;
+  created_at: string;
+}
+
+export type HistoryToolType = 'pdf' | 'document_converter';
+
+export interface UnifiedHistoryItem {
+  id: string;
+  userId: string;
+  toolType: HistoryToolType;
+  sourceFilename: string;
+  outputFilename: string;
+  displayFilename: string;
+  sourceFormat?: string;
+  targetFormat?: string;
+  operation: string;
+  operationLabel: string;
+  fileSize: number;
+  status: 'completed' | 'failed' | 'processing';
+  errorMessage?: string;
+  storagePath: string;
+  createdAt: string;
+  downloadUrl?: string;
+}
+
 export interface DashboardStats {
   pdfFilesCount: number;
-  resumesCount: number;
+  documentsConvertedCount: number;
+  resumesCount?: number;
   activitiesCount: number;
   availableToolsCount: number;
   comingSoonToolsCount: number;

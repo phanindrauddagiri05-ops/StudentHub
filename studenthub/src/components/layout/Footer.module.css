@@ -111,6 +111,27 @@
   color: #fff;
 }
 
+.linkDisabled {
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+  cursor: default;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+
+.soonBadge {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--color-gray-800);
+  color: var(--color-gray-400);
+}
+
 /* Bottom bar */
 .bottom {
   border-top: 1px solid var(--color-gray-800);

@@ -20,7 +20,7 @@ const AUTH_NAV_LINKS = [
   { label: 'Home', href: '/' },
   { label: 'Tools', href: '/tools' },
   { label: 'Dashboard', href: '/dashboard' },
-  { label: 'PDF History', href: '/history' },
+  { label: 'History', href: '/history' },
 ];
 
 export default function Header() {

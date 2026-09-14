@@ -3,7 +3,10 @@ import { BookOpen } from 'lucide-react';
 import styles from './Footer.module.css';
 import { APP_COPYRIGHT } from '@/lib/constants';
 
-const FOOTER_LINKS = {
+const FOOTER_LINKS: Record<
+  string,
+  { label: string; href: string; disabled?: boolean; tag?: string }[]
+> = {
   StudentHub: [
     { label: 'About', href: '/#about' },
     { label: 'Features', href: '/#features' },
@@ -11,11 +14,12 @@ const FOOTER_LINKS = {
     { label: 'Contact', href: '#' },
   ],
   Tools: [
+    { label: 'Document Converters', href: '/tools/document-converters' },
     { label: 'PDF Tools', href: '/tools/pdf' },
-    { label: 'Resume Generator', href: '/tools/resume' },
-    { label: 'Notes', href: '/tools/notes' },
-    { label: 'PDF Summary', href: '/tools/summary' },
-    { label: 'Attendance', href: '/tools/attendance' },
+    { label: 'Resume Generator', href: '#', disabled: true, tag: 'Soon' },
+    { label: 'Notes', href: '#', disabled: true, tag: 'Soon' },
+    { label: 'PDF Summary', href: '#', disabled: true, tag: 'Soon' },
+    { label: 'Attendance', href: '#', disabled: true, tag: 'Soon' },
   ],
   Resources: [
     { label: 'Help', href: '/#faq' },
@@ -54,9 +58,16 @@ export default function Footer() {
             <ul className={styles.linkList}>
               {links.map((link) => (
                 <li key={link.label}>
-                  <Link href={link.href} className={styles.link}>
-                    {link.label}
-                  </Link>
+                  {link.disabled ? (
+                    <span className={styles.linkDisabled}>
+                      {link.label}
+                      {link.tag && <span className={styles.soonBadge}>{link.tag}</span>}
+                    </span>
+                  ) : (
+                    <Link href={link.href} className={styles.link}>
+                      {link.label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

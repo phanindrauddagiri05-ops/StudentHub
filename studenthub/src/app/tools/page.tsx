@@ -27,8 +27,8 @@ export default function ToolsPage() {
   }, [search, activeCategory]);
 
   const CATEGORY_SECTIONS = [
+    { id: 'documents', title: 'Documents', desc: 'Merge, split, convert, and optimize academic documents' },
     { id: 'career', title: 'Career', desc: 'Build job-ready profiles, resumes, and portfolios' },
-    { id: 'documents', title: 'Documents', desc: 'Manage, edit, convert, and optimize PDFs and resumes' },
     { id: 'study', title: 'Study', desc: 'Accelerate textbook reading, note taking, and revision' },
     { id: 'academic', title: 'Academic', desc: 'Track marks, grades, cutoffs, and lecture attendance' },
     { id: 'planning', title: 'Planning', desc: 'Schedules, class routines, and study timelines' },

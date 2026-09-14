@@ -10,6 +10,7 @@ import {
   Plus,
   Bookmark,
   FolderTree,
+  RefreshCw,
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
@@ -17,6 +18,7 @@ import { getDashboardStats, getUserActivities } from '@/lib/storage/file-service
 import { formatRelativeTime } from '@/lib/utils/date';
 import type { DashboardStats, ActivityLog } from '@/types/database';
 import { CreateResumeModal } from '@/components/tools/resume/CreateResumeModal';
+import { FEATURE_FLAGS } from '@/lib/config/features';
 import styles from './dashboard.module.css';
 
 export default function DashboardPage() {
@@ -75,13 +77,13 @@ export default function DashboardPage() {
 
   const QUICK_TOOLS = [
     {
-      id: 'resume-generator',
-      name: 'Resume Generator',
-      desc: 'Build ATS-friendly, professional resumes with live A4 preview and instant vector PDF export.',
-      emoji: '💼',
+      id: 'document-converters',
+      name: 'Document Converters',
+      desc: 'Convert documents between popular file formats quickly and securely.',
+      emoji: '🔄',
       status: 'available',
-      href: '/tools/resume',
-      actionText: 'Build Resume',
+      href: '/tools/document-converters',
+      actionText: 'Open Tool',
     },
     {
       id: 'pdf-tools',
@@ -91,6 +93,15 @@ export default function DashboardPage() {
       status: 'available',
       href: '/tools/pdf',
       actionText: 'Open Tool',
+    },
+    {
+      id: 'resume-generator',
+      name: 'Resume Generator',
+      desc: 'Build ATS-friendly, professional resumes using StudentHub resume templates.',
+      emoji: '💼',
+      status: 'coming-soon',
+      href: '#',
+      actionText: 'Coming Soon',
     },
     {
       id: 'percentage-calculator',
@@ -179,11 +190,12 @@ export default function DashboardPage() {
       resume_duplicate: 'Resume duplicated',
       resume_delete: 'Resume deleted',
       resume_export: 'Resume exported as PDF',
+      document_conversion: 'Document converted',
     };
     return map[action] || action.replace(/_/g, ' ');
   };
 
-  const totalSavedFiles = (stats?.pdfFilesCount ?? 0) + (stats?.resumesCount ?? 0);
+  const totalSavedFiles = (stats?.pdfFilesCount ?? 0) + (stats?.documentsConvertedCount ?? 0);
 
   return (
     <div className={styles.dashboard}>
@@ -202,14 +214,14 @@ export default function DashboardPage() {
 
         {/* Primary Quick Action Buttons */}
         <div className={styles.quickActionsRow}>
-          <button
-            type="button"
+          <Link
+            href="/tools/document-converters"
             className={[styles.quickActionBtn, styles.quickActionPrimary].join(' ')}
-            onClick={() => setCreateResumeOpen(true)}
+            id="quick-action-convert"
           >
-            <Plus size={16} />
-            Create Resume
-          </button>
+            <RefreshCw size={16} />
+            Convert Document
+          </Link>
           <Link href="/tools/pdf" className={styles.quickActionBtn}>
             <FileText size={16} color="#2563eb" />
             PDF Tools
@@ -243,6 +255,21 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          {/* Documents Converted (Phase 3) */}
+          <div className={styles.statCard}>
+            <div className={[styles.statIconBox, styles.iconPurple].join(' ')}>
+              <RefreshCw size={24} />
+            </div>
+            <div className={styles.statInfo}>
+              {loading ? (
+                <div className={styles.skeleton} style={{ width: 40, height: 28 }} />
+              ) : (
+                <span className={styles.statValue}>{stats?.documentsConvertedCount ?? 0}</span>
+              )}
+              <span className={styles.statLabel}>Documents Converted</span>
+            </div>
+          </div>
+
           {/* Saved Files */}
           <div className={styles.statCard}>
             <div className={[styles.statIconBox, styles.iconGreen].join(' ')}>
@@ -255,21 +282,6 @@ export default function DashboardPage() {
                 <span className={styles.statValue}>{totalSavedFiles}</span>
               )}
               <span className={styles.statLabel}>Saved Files</span>
-            </div>
-          </div>
-
-          {/* Resumes */}
-          <div className={styles.statCard}>
-            <div className={[styles.statIconBox, styles.iconPurple].join(' ')}>
-              <Sparkles size={24} />
-            </div>
-            <div className={styles.statInfo}>
-              {loading ? (
-                <div className={styles.skeleton} style={{ width: 40, height: 28 }} />
-              ) : (
-                <span className={styles.statValue}>{stats?.resumesCount ?? 0}</span>
-              )}
-              <span className={styles.statLabel}>Resumes Built</span>
             </div>
           </div>
 
@@ -362,15 +374,11 @@ export default function DashboardPage() {
                 <span className={styles.emptyIcon}>⏳</span>
                 <p className={styles.emptyTitle}>No recent activity</p>
                 <p className={styles.emptySubtitle}>
-                  Create your first resume or process a PDF to view activity logs here.
+                  Process a PDF or convert a document to view your activity logs here.
                 </p>
                 <div style={{ marginTop: 12, display: 'flex', gap: '0.5rem' }}>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => setCreateResumeOpen(true)}
-                  >
-                    Create Resume
+                  <Button variant="primary" size="sm" href="/tools/document-converters">
+                    Convert Document
                   </Button>
                   <Button variant="secondary" size="sm" href="/tools/pdf">
                     PDF Tools
@@ -382,7 +390,9 @@ export default function DashboardPage() {
                 {activities.map((act) => (
                   <div key={act.id} className={styles.activityItem}>
                     <div className={styles.activityIconBox}>
-                      {act.action.startsWith('resume') ? (
+                      {act.action === 'document_conversion' ? (
+                        <RefreshCw size={16} />
+                      ) : act.action.startsWith('resume') ? (
                         <Sparkles size={16} />
                       ) : (
                         <FileText size={16} />
@@ -390,12 +400,15 @@ export default function DashboardPage() {
                     </div>
                     <div className={styles.activityDetails}>
                       <div className={styles.activityAction}>{formatActivityAction(act.action)}</div>
-                      {typeof act.metadata?.filename === 'string' && (
+                      {act.action === 'document_conversion' && typeof act.metadata?.source_filename === 'string' ? (
+                        <div className={styles.activityFilename}>
+                          &ldquo;{act.metadata.source_filename}&rdquo; → {String(act.metadata.target_format || 'PDF').toUpperCase()}
+                        </div>
+                      ) : typeof act.metadata?.filename === 'string' ? (
                         <div className={styles.activityFilename}>&ldquo;{act.metadata.filename}&rdquo;</div>
-                      )}
-                      {typeof act.metadata?.title === 'string' && (
+                      ) : typeof act.metadata?.title === 'string' ? (
                         <div className={styles.activityFilename}>&ldquo;{act.metadata.title}&rdquo;</div>
-                      )}
+                      ) : null}
                       <div className={styles.activityTime}>{formatRelativeTime(act.created_at)}</div>
                     </div>
                   </div>
@@ -406,15 +419,17 @@ export default function DashboardPage() {
         </section>
       </div>
 
-      {/* Create Resume Modal */}
-      <CreateResumeModal
-        isOpen={createResumeOpen}
-        onClose={() => setCreateResumeOpen(false)}
-        onCreated={(id) => {
-          setCreateResumeOpen(false);
-          router.push(`/tools/resume/${id}`);
-        }}
-      />
+      {/* Create Resume Modal (Phase 8) */}
+      {FEATURE_FLAGS.RESUME_GENERATOR && (
+        <CreateResumeModal
+          isOpen={createResumeOpen}
+          onClose={() => setCreateResumeOpen(false)}
+          onCreated={(id) => {
+            setCreateResumeOpen(false);
+            router.push(`/tools/resume/${id}`);
+          }}
+        />
+      )}
     </div>
   );
 }

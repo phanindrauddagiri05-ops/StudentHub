@@ -13,8 +13,11 @@ export const APP_COPYRIGHT = `© ${new Date().getFullYear()} StudentHub. All rig
 // File limits
 export const MAX_PDF_SIZE_MB = 50;
 export const MAX_IMAGE_SIZE_MB = 20;
+export const MAX_DOCUMENT_CONVERSION_FILE_SIZE_MB = 25;
 export const MAX_PDF_SIZE_BYTES = MAX_PDF_SIZE_MB * 1024 * 1024;
 export const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+export const MAX_DOCUMENT_CONVERSION_FILE_SIZE_BYTES =
+  MAX_DOCUMENT_CONVERSION_FILE_SIZE_MB * 1024 * 1024;
 export const MAX_PDF_FILES = 20;
 
 // Accepted MIME types
@@ -37,9 +40,13 @@ export const ROUTES = {
   pdfToImages: '/tools/pdf/pdf-to-images',
   pdfReorder: '/tools/pdf/reorder',
   pdfCompress: '/tools/pdf/compress',
+  documentConverters: '/tools/document-converters',
+  resume: '/tools/resume',
   login: '/login',
   signup: '/signup',
   dashboard: '/dashboard',
   profile: '/profile',
   settings: '/settings',
+  history: '/history',
+  resumeHistory: '/history/resumes',
 } as const;

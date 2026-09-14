@@ -8,10 +8,17 @@ import { getResumeById, updateResume, exportAndSaveResumePdf } from '@/lib/resum
 import { ResumeToolbar } from '@/components/tools/resume/ResumeToolbar';
 import { ResumeEditor } from '@/components/tools/resume/ResumeEditor';
 import { ResumePreview } from '@/components/tools/resume/ResumePreview';
+import { ResumeComingSoon } from '@/components/tools/resume/ResumeComingSoon';
+import { FEATURE_FLAGS } from '@/lib/config/features';
 import styles from './builder.module.css';
 
 export default function ResumeBuilderPage() {
   const params = useParams();
+
+  if (!FEATURE_FLAGS.RESUME_GENERATOR) {
+    return <ResumeComingSoon />;
+  }
+
   const resumeId = params?.id as string;
 
   const [data, setData] = useState<ResumeData | null>(null);
